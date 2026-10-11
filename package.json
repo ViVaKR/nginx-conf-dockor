@@ -1,0 +1,63 @@
+{
+  "name": "nginx-conf-doctor",
+  "displayName": "nginx-conf-doctor",
+  "publisher": "buddham-hq",
+  "description": "컨텍스트 인식 진단·자동완성·hover 문서를 제공하는 nginx 설정 확장",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.140.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:nginx"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "nginx",
+        "aliases": [
+          "Nginx",
+          "nginx"
+        ],
+        "extensions": [
+          ".nginx",
+          ".nginx.conf"
+        ],
+        "filenames": [
+          "nginx.conf",
+          "mime.types",
+          "fastcgi_params",
+          "scgi_params",
+          "uwsgi_params"
+        ],
+        "filenamePatterns": [
+          "**/nginx/**/*.conf",
+          "**/conf.d/*.conf",
+          "**/sites-available/*",
+          "**/sites-enabled/*",
+          "**/snippets/*.conf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "scripts": {
+    "gen:directives": "node scripts/gen-directives.js",
+    "test:unit": "node --test test/unit/*.spec.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.140.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "eslint": "^10.5.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
