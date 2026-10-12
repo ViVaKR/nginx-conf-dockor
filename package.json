@@ -42,9 +42,20 @@
         ],
         "configuration": "./language-configuration.json"
       }
+    ],
+    "grammars": [
+      {
+        "language": "nginx",
+        "scopeName": "source.nginx",
+        "path": "./syntaxes/nginx.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.lua": "lua"
+        }
+      }
     ]
   },
   "scripts": {
+    "gen:grammar": "node scripts/gen-grammar.js",
     "gen:directives": "node scripts/gen-directives.js",
     "test:unit": "node --test test/unit/*.spec.js"
   },

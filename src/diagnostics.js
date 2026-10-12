@@ -4,6 +4,7 @@
 const vscode = require('vscode');
 const { parse } = require('./nginx/parser');
 const { loadDefaultDb } = require('./nginx/directive-db');
+const { suppressWhileTyping } = require('./nginx/typing-filter');
 
 const LANGUAGE_ID = 'nginx';
 const SOURCE = 'nginx-conf-doctor';
@@ -27,9 +28,17 @@ function registerDiagnostics(context) {
     console.warn(`[${SOURCE}] 지시어 데이터를 읽지 못했습니다: ${e.message}`);
   }
 
+  // 이 문서를 보고 있는 모든 에디터의 커서 위치 (입력 중인 토큰 판별용)
+  function cursorOffsets(doc) {
+    return vscode.window.visibleTextEditors
+      .filter((e) => e.document === doc)
+      .flatMap((e) => e.selections.map((sel) => doc.offsetAt(sel.active)));
+  }
+
   function refresh(doc) {
     if (doc.languageId !== LANGUAGE_ID) return;
-    const { diagnostics } = parse(doc.getText(), { isKnownDirective });
+    const parsed = parse(doc.getText(), { isKnownDirective });
+    const diagnostics = suppressWhileTyping(parsed.diagnostics, cursorOffsets(doc));
     collection.set(
       doc.uri,
       diagnostics.map((d) => {
@@ -52,6 +61,8 @@ function registerDiagnostics(context) {
     collection,
     vscode.workspace.onDidOpenTextDocument(refresh),
     vscode.workspace.onDidChangeTextDocument((e) => schedule(e.document)),
+    // 커서가 입력 중이던 토큰을 벗어나면 숨겼던 진단을 다시 보여준다
+    vscode.window.onDidChangeTextEditorSelection((e) => schedule(e.textEditor.document)),
     vscode.workspace.onDidCloseTextDocument((doc) => {
       clearTimeout(timers.get(doc.uri.toString()));
       timers.delete(doc.uri.toString());
