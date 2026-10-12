@@ -5,7 +5,7 @@
   "description": "컨텍스트 인식 진단·자동완성·hover 문서를 제공하는 nginx 설정 확장",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.140.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other"
@@ -49,7 +49,7 @@
     "test:unit": "node --test test/unit/*.spec.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.140.0",
+    "@types/vscode": "^1.90.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "eslint": "^10.5.0",

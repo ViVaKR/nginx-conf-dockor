@@ -4,9 +4,21 @@
 
 ```bash
 
+npm install
+npm run test:unit # 43개 통과 확인
 
+```
 
+## 테스트
 
+1. --> F5 로 확장 개발 호스트 열기
+2. --> 2. 'test.nginx.conf' 파일 만들기
+
+```nginx
+server {
+    listen 80
+    server_name example.com;
+}
 ```
 
 
