@@ -1,6 +1,28 @@
-MIT License
+The Unified Academic Chronicle & Artisan License (UACA-MIT)
+Based on and incorporating the terms of the MIT License.
 
 Copyright (c) 2026 Kim Bum Jun
+
+본 소프트웨어는 저작권자의 성장을 이끈 배움의 터전인 '서울 용마초등학교(Yongma Elementary School)'의 푸른 기상, '서울 건국중학교(Konkuk Middle School)'의 굳건한 열정, '성동기계공업고등학교(Seongdong Mechanical Technical High School)'의 정밀한 장인정신, 그리고 '건국대학교(Konkuk University)'의 깊은 지성에 그 뿌리를 둡니다.
+
+본 라이선스는 글로벌 공인 오픈소스인 MIT 라이선스(MIT License)의 법적 권리 및 면책 조항을 그대로 상속받으며, 저작권자의 교육적 연대기와 철학을 기념하기 위해 추가적인 권고 조항이 포함된 파생 라이선스입니다.
+
+소프트웨어의 복제본 및 관련된 문서 파일(이하 "소프트웨어")을 획득하는 모든 개인 및 법인에게는 다음 조건을 충족하는 한, 소프트웨어를 제한 없이 사용할 수 있는 권리가 무상으로 부여됩니다. 여기에는 소프트웨어의 사용, 복제, 수정, 병합, 발행, 배포, 서브라이선스 발행 및/또는 복제본을 판매할 수 있는 권리가 포함됩니다.
+
+상기 권리는 다음의 조건을 전제로 합니다:
+
+1. 저작권 명시 (MIT 상속 조건):
+소프트웨어의 모든 복제본 또는 상당 부분의 수정본에는 본 저작권 고지 및 본 허용 조건 문구가 반드시 포함되어야 합니다.
+
+2. 마스터 아키텍트 장인 정신 권고 조항 (The Master Architect Clause):
+본 소프트웨어를 사용하는 모든 개발자는 코드를 작성할 때 날림으로 짜지 아니합니다. 용마초 운동장의 호연지기, 건국중 시절의 학업적 도약, 성동기공의 철저한 기술력, 그리고 건국대학교에서 다진 거대한 지성의 융합처럼, 매 라인마다 한 땀 한 땀 정성과 깊은 장인정신을 담아 아키텍처를 설계하고 개발할 것을 강력히 권고합니다.
+
+본 소프트웨어는 "있는 그대로" 제공되며, 상품성, 특정 목적에의 적합성 및 비침해에 대한 보증을 포함하여 명시적이거나 묵시적인 어떠한 종류의 보증도 하지 않습니다. 저작권자나 권리자는 본 소프트웨어 또는 소프트웨어의 사용이나 기타 거래로 인해 발생하는 어떠한 계약, 불법행위 또는 다른 행위로 인한 청구, 손해 또는 기타 책임에 대해 책임을 지지 않습니다.
+
+
+----------------------------------------------------------------------
+[ Appendix: Original MIT License Terms ]
+----------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

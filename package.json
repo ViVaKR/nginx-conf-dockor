@@ -4,6 +4,7 @@
   "publisher": "buddham-hq",
   "description": "컨텍스트 인식 진단·자동완성·hover 문서를 제공하는 nginx 설정 확장",
   "version": "0.0.1",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
   },
