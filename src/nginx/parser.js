@@ -15,20 +15,35 @@
 // 세미콜론 누락 판정 (nginx -t 는 엉뚱한 줄을 가리키지만 여기선 "그 줄"을 가리킴):
 //   ① 인자 수집 중 '}' 를 만났다            → 직전 토큰 뒤에 ; 누락
 //   ② 파일 끝에 도달                         → 직전 토큰 뒤에 ; 누락
-//   ③ 다음 줄이 "알려진 지시어 이름"으로 시작하고, 그 줄의 들여쓰기가 현재
-//      문장 첫 줄의 들여쓰기 이하일 때       → 직전 토큰 뒤에 ; 누락
-//   ③ 의 들여쓰기 조건 덕분에 아래처럼 정상적인 여러 줄 인자는 오탐하지 않는다.
+//   ③ 다음 줄이 "알려진 지시어 이름"으로 시작할 때          → 직전 토큰 뒤에 ; 누락
+//      단, 인자로도 흔히 쓰이는 이름(AMBIGUOUS_ARGS: break/ssl/http2/http3)은
+//      들여쓰기가 현재 문장 첫 줄 이하일 때만 새 문장으로 본다. 그래서 아래처럼
+//      정상적인 여러 줄 인자는 오탐하지 않는다.
 //        rewrite ^/a /b
-//            break;          ← break 는 지시어 이름이기도 하지만 더 깊게 들여썼으므로 이어지는 인자
+//            break;          ← break 는 지시어 이름이기도 하지만 더 깊게 들여썼으므로 인자
+//      (들여쓰기가 뒤섞인 실제 설정에서 깊게 들여쓴 다음 줄 지시어를 놓치던 문제를
+//       변이 테스트(scripts/mutate-check.js)로 발견해 이렇게 바꿨다.)
 //
-// map/geo/types 같은 "데이터 블록" 안은 `키 값;` 형태라 ③ 을 적용하지 않는다.
+// map/geo/types 같은 "데이터 블록" 안은 `키 값;` 형태라 ③ (지시어 이름 추정)을 적용하지 않는다.
+// 대신 두 칸짜리 블록(map/num_map/geo/split_clients/charset_map)에는 ③-b 를 적용한다:
+// 행이 이미 2토큰인데 다음 줄에 새 토큰이 오면 ';' 누락. (키 1토큰 + 다음 줄 값은 정상)
 // 한계: 다음 줄이 "모르는 이름"이면 ③ 이 못 잡는다 (0.5 의 인자 개수 검사에서 보완 예정).
 // -----------------------------------------------------------------------
 'use strict';
 
 const { tokenize, TokenType: T } = require('./tokenizer');
 
-const DATA_BLOCKS = new Set(['map', 'geo', 'types', 'split_clients', 'charset_map', 'match']);
+// 안쪽이 `키 값;` 형태라서 지시어 추정(세미콜론 누락 판정)을 끄는 블록들.
+// num_map 은 nginx 1.29.3 에서 추가된 map 계열 (키가 숫자 범위: `<=1023 0;`, `8080-8090 1;`).
+// 지시어 이름이면서 "인자"로도 흔히 쓰이는 단어들 (rewrite ... break; / listen 443 ssl http2;).
+// 이어지는 줄이 이 단어로 시작하고 들여쓰기가 더 깊으면 새 문장이 아니라 인자로 본다.
+const AMBIGUOUS_ARGS = new Set(['break', 'ssl', 'http2', 'http3']);
+
+// 데이터 블록 중 행이 정확히 `키 값;` (토큰 2개) 인 것들. 이미 2개를 채운 행에서 다음 줄에
+// 새 토큰이 시작되면 ';' 누락으로 본다. types/match 는 인자 수가 가변이라 제외.
+const TWO_COLUMN_BLOCKS = new Set(['map', 'num_map', 'geo', 'split_clients', 'charset_map']);
+
+const DATA_BLOCKS = new Set(['map', 'num_map', 'geo', 'types', 'split_clients', 'charset_map', 'match']);
 
 /**
  * @param {string} text
@@ -57,7 +72,7 @@ function parse(text, options = {}) {
 
   function missingSemicolon(last, nextTok) {
     let msg = '세미콜론(;)이 빠진 것 같습니다.';
-    if (nextTok) msg += ` 다음 줄의 '${nextTok.value}' 은(는) 새 지시어로 보입니다.`;
+    if (nextTok) msg += ` 다음 줄의 '${nextTok.value}' 은(는) 새 문장의 시작으로 보입니다.`;
     else msg += ' 문장이 끝나지 않은 채 블록/파일이 끝났습니다.';
     diag('missing-semicolon', msg, last.start, last.end);
   }
@@ -132,13 +147,23 @@ function parse(text, options = {}) {
         return node;
       }
 
+      // ③-b 두 칸짜리 데이터 블록: 키와 값을 이미 채웠는데 다음 줄에 새 토큰이 시작됨
+      if (
+        parent.twoColumn &&
+        node.args.length >= 1 &&
+        lineOf(t.start) > lineOf(Math.max(last.end - 1, last.start))
+      ) {
+        missingSemicolon(last, t);
+        return node;
+      }
+
       // ③ 다음 줄이 새 지시어로 보이는가?
       if (
         !inData &&
         t.type === T.WORD &&
         lineOf(t.start) > lineOf(Math.max(last.end - 1, last.start)) &&
         isKnown(t.value) &&
-        indentOf(t.start) <= startIndent
+        (indentOf(t.start) <= startIndent || !AMBIGUOUS_ARGS.has(t.value))
       ) {
         missingSemicolon(last, t);
         return node;
@@ -166,6 +191,7 @@ function parse(text, options = {}) {
       children: [],
       raw: null,
       dataBlock: DATA_BLOCKS.has(node.name),
+      twoColumn: TWO_COLUMN_BLOCKS.has(node.name),
       depth: depth + 1,
     };
     node.block = block;

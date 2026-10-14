@@ -6,7 +6,7 @@ const { parse } = require('../../src/nginx/parser');
 const KNOWN = new Set([
   'http', 'server', 'location', 'listen', 'server_name', 'return', 'root', 'index',
   'proxy_pass', 'include', 'rewrite', 'break', 'set', 'add_header', 'internal',
-  'log_format', 'access_log', 'gzip', 'map',
+  'log_format', 'access_log', 'gzip', 'map', 'ssl', 'http2',
 ]);
 const opts = { isKnownDirective: (n) => KNOWN.has(n) };
 const run = (src) => parse(src, opts);
@@ -84,6 +84,26 @@ test('더 깊게 들여쓴 이어지는 인자는 오탐하지 않음 (break 는
   assert.deepEqual(run(src).diagnostics, []);
 });
 
+test('들여쓰기가 뒤섞여도(다음 줄이 더 깊어도) 알려진 지시어면 누락으로 본다', () => {
+  const src = `server {
+    index index.html
+        access_log off;
+}
+`;
+  const r = run(src);
+  assert.deepEqual(codes(r), ['missing-semicolon']);
+  assert.equal(slice(src, r.diagnostics[0]), 'index.html');
+});
+
+test('listen 443 / ssl http2 처럼 이어지는 인자(ssl, http2)는 정상', () => {
+  const src = `server {
+    listen 443
+        ssl http2;
+}
+`;
+  assert.deepEqual(run(src).diagnostics, []);
+});
+
 test('여러 줄 따옴표 인자는 정상', () => {
   const src = `log_format main '$a'
                 '$b';
@@ -125,6 +145,57 @@ test('map 같은 데이터 블록 안은 지시어 추정 안 함', () => {
   const r = run(src);
   assert.deepEqual(r.diagnostics, []);
   assert.equal(r.root.children[0].block.dataBlock, true);
+});
+
+test('num_map(map 계열) 블록: 숫자 범위 키와 지시어 이름이 겹쳐도 오탐 없음', () => {
+  const src = `num_map $remote_port $port_allow {
+  default    0;
+  80         1;
+  <=1023     0;
+  8080-8090  1;
+  include    ports.conf;
+}
+`;
+  const r = run(src);
+  assert.deepEqual(r.diagnostics, []);
+  assert.equal(r.root.children[0].block.dataBlock, true);
+});
+
+test('map 행의 세미콜론 누락: 키+값을 채운 뒤 다음 줄에 새 토큰', () => {
+  const src = `map $a $b {
+    default 0
+    ~^x 1;
+}
+`;
+  const r = run(src);
+  assert.deepEqual(codes(r), ['missing-semicolon']);
+  assert.equal(slice(src, r.diagnostics[0]), '0');
+});
+
+test('map 행: 따옴표 키/값도 감지, 긴 값이 다음 줄로 넘어가는 것은 정상', () => {
+  const bad = `map $o $c {
+    "~*^https?://a\\.com$" "$o"
+    "~*^http://b$" "$o";
+}
+`;
+  assert.deepEqual(codes(run(bad)), ['missing-semicolon']);
+  const wrapped = `map $o $c {
+    "~*^very-long-regex$"
+        "$o";
+    default "";
+}
+`;
+  assert.deepEqual(run(wrapped).diagnostics, []);
+});
+
+test('types 처럼 인자 수가 가변인 데이터 블록은 여러 줄 나열을 허용', () => {
+  const src = `types {
+    text/html html htm
+        shtml;
+    text/css css;
+}
+`;
+  assert.deepEqual(run(src).diagnostics, []);
 });
 
 test('lua_block 본문은 통째로 건너뜀', () => {

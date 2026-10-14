@@ -8,7 +8,15 @@
     "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "nginx",
+    "conf",
+    "lint",
+    "diagnostics",
+    "syntax-highlighting"
   ],
   "activationEvents": [
     "onLanguage:nginx"
@@ -52,11 +60,37 @@
           "meta.embedded.block.lua": "lua"
         }
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Nginx Conf Doctor",
+      "properties": {
+        "nginx-conf-doctor.extraDirectives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "서드파티 모듈 등 이 확장이 모르는 지시어 이름. 여기 적으면 '알 수 없는 지시어' 경고가 사라집니다."
+        },
+        "nginx-conf-doctor.unknownDirectiveSeverity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "information",
+            "off"
+          ],
+          "default": "warning",
+          "description": "알 수 없는 지시어의 표시 수준. off 로 끌 수 있습니다."
+        }
+      }
+    }
   },
   "scripts": {
     "gen:grammar": "node scripts/gen-grammar.js",
     "gen:directives": "node scripts/gen-directives.js",
+    "check": "node scripts/check-conf.js",
+    "mutate": "node scripts/mutate-check.js",
     "test:unit": "node --test test/unit/*.spec.js"
   },
   "devDependencies": {

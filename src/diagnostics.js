@@ -3,29 +3,33 @@
 
 const vscode = require('vscode');
 const { parse } = require('./nginx/parser');
-const { loadDefaultDb } = require('./nginx/directive-db');
+const { lintUnknownDirectives } = require('./nginx/lint');
 const { suppressWhileTyping } = require('./nginx/typing-filter');
 
 const LANGUAGE_ID = 'nginx';
 const SOURCE = 'nginx-conf-doctor';
+const CONFIG = 'nginx-conf-doctor';
 const DEBOUNCE_MS = 250;
 
 const SEVERITY = {
   error: vscode.DiagnosticSeverity.Error,
   warning: vscode.DiagnosticSeverity.Warning,
+  information: vscode.DiagnosticSeverity.Information,
   info: vscode.DiagnosticSeverity.Information,
 };
 
-function registerDiagnostics(context) {
+/** @param {{ isKnownDirective: Function, names: () => string[] } | null} db */
+function registerDiagnostics(context, db) {
   const collection = vscode.languages.createDiagnosticCollection(SOURCE);
   const timers = new Map();
+  const names = db ? db.names() : [];
 
-  let isKnownDirective;
-  try {
-    isKnownDirective = loadDefaultDb().isKnownDirective;
-  } catch (e) {
-    // data/nginx-directives.json 이 없으면 "다음 줄 지시어 추정" 만 꺼지고 나머지 진단은 동작
-    console.warn(`[${SOURCE}] 지시어 데이터를 읽지 못했습니다: ${e.message}`);
+  function readConfig() {
+    const cfg = vscode.workspace.getConfiguration(CONFIG);
+    return {
+      extra: new Set(cfg.get('extraDirectives', [])),
+      unknownSeverity: cfg.get('unknownDirectiveSeverity', 'warning'),
+    };
   }
 
   // 이 문서를 보고 있는 모든 에디터의 커서 위치 (입력 중인 토큰 판별용)
@@ -37,8 +41,20 @@ function registerDiagnostics(context) {
 
   function refresh(doc) {
     if (doc.languageId !== LANGUAGE_ID) return;
+    const isKnownDirective = db ? db.isKnownDirective : undefined;
     const parsed = parse(doc.getText(), { isKnownDirective });
-    const diagnostics = suppressWhileTyping(parsed.diagnostics, cursorOffsets(doc));
+    const { extra, unknownSeverity } = readConfig();
+
+    let all = parsed.diagnostics;
+    if (db && unknownSeverity !== 'off') {
+      const linted = lintUnknownDirectives(parsed.root, { isKnownDirective, names, extra }).map((d) => ({
+        ...d,
+        severity: unknownSeverity,
+      }));
+      all = all.concat(linted).sort((a, b) => a.start - b.start || a.end - b.end);
+    }
+
+    const diagnostics = suppressWhileTyping(all, cursorOffsets(doc));
     collection.set(
       doc.uri,
       diagnostics.map((d) => {
@@ -67,6 +83,10 @@ function registerDiagnostics(context) {
       clearTimeout(timers.get(doc.uri.toString()));
       timers.delete(doc.uri.toString());
       collection.delete(doc.uri);
+    }),
+    // 설정(extraDirectives / 심각도)을 바꾸면 열려 있는 문서를 즉시 다시 검사
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(CONFIG)) vscode.workspace.textDocuments.forEach(refresh);
     }),
   );
 
