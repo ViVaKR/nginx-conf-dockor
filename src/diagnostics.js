@@ -3,7 +3,8 @@
 
 const vscode = require('vscode');
 const { parse } = require('./nginx/parser');
-const { lintUnknownDirectives } = require('./nginx/lint');
+const { lintUnknownDirectives, lintContexts } = require('./nginx/lint');
+const { isMainFile } = require('./nginx/completion');
 const { suppressWhileTyping } = require('./nginx/typing-filter');
 
 const LANGUAGE_ID = 'nginx';
@@ -29,6 +30,7 @@ function registerDiagnostics(context, db) {
     return {
       extra: new Set(cfg.get('extraDirectives', [])),
       unknownSeverity: cfg.get('unknownDirectiveSeverity', 'warning'),
+      contextSeverity: cfg.get('contextSeverity', 'warning'),
     };
   }
 
@@ -43,7 +45,7 @@ function registerDiagnostics(context, db) {
     if (doc.languageId !== LANGUAGE_ID) return;
     const isKnownDirective = db ? db.isKnownDirective : undefined;
     const parsed = parse(doc.getText(), { isKnownDirective });
-    const { extra, unknownSeverity } = readConfig();
+    const { extra, unknownSeverity, contextSeverity } = readConfig();
 
     let all = parsed.diagnostics;
     if (db && unknownSeverity !== 'off') {
@@ -51,8 +53,14 @@ function registerDiagnostics(context, db) {
         ...d,
         severity: unknownSeverity,
       }));
-      all = all.concat(linted).sort((a, b) => a.start - b.start || a.end - b.end);
+      all = all.concat(linted);
     }
+    if (db && contextSeverity !== 'off') {
+      const isMain = isMainFile(parsed.root, doc.fileName || '');
+      const wrong = lintContexts(parsed.root, { db, isMain }).map((d) => ({ ...d, severity: contextSeverity }));
+      all = all.concat(wrong);
+    }
+    all = all.sort((a, b) => a.start - b.start || a.end - b.end);
 
     const diagnostics = suppressWhileTyping(all, cursorOffsets(doc));
     collection.set(

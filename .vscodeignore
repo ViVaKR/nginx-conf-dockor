@@ -9,3 +9,11 @@ vsc-extension-quickstart.md
 **/eslint.config.mjs
 **/.vscode-test.*
 scripts/**
+nginx/**
+*.conf
+test/**
+
+eslint.config.mjs
+README.Test.md
+
+docs/**

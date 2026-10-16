@@ -32,3 +32,9 @@ test('커서 정보가 없으면 그대로', () => {
 test('멀티 커서: 하나라도 걸치면 숨김', () => {
   assert.deepEqual(suppressWhileTyping([semi], [0, 12]), []);
 });
+
+test('컨텍스트 오류 경고도 입력 중에는 숨긴다', () => {
+  const d = { code: 'directive-not-allowed', start: 10, end: 20 };
+  assert.deepEqual(suppressWhileTyping([d], [20]), []);
+  assert.deepEqual(suppressWhileTyping([d], [25]), [d]);
+});

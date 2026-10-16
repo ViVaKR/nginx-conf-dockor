@@ -17,6 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const { parse } = require('../src/nginx/parser');
 const { createDirectiveDb } = require('../src/nginx/directive-db');
+const { lintContexts } = require('../src/nginx/lint');
+const { isMainFile } = require('../src/nginx/completion');
 
 const CONF_RE = /\.(conf|nginx|types)$|^(fastcgi|scgi|uwsgi)_params$|^fastcgi\.conf$/;
 
@@ -42,10 +44,12 @@ function collectFiles(target, all, out = []) {
 }
 
 /** @returns {{ diagnostics: Array, unknown: Map<string, number> }} */
-function scanText(text, isKnownDirective) {
+function scanText(text, isKnownDirective, db = null, fileName = '') {
   const r = parse(text, { isKnownDirective });
   const lines = text.split(/\r\n|\n/);
-  const diagnostics = r.diagnostics.map((d) => {
+  const all = db ? r.diagnostics.concat(lintContexts(r.root, { db, isMain: isMainFile(r.root, fileName) })) : r.diagnostics;
+  all.sort((a, b) => a.start - b.start);
+  const diagnostics = all.map((d) => {
     const pos = r.positionAt(d.start);
     return {
       code: d.code,
@@ -88,8 +92,10 @@ function main(argv) {
   }
 
   let isKnown = () => false;
+  let db = null;
   try {
-    isKnown = createDirectiveDb(JSON.parse(fs.readFileSync(dataPath, 'utf8'))).isKnownDirective;
+    db = createDirectiveDb(JSON.parse(fs.readFileSync(dataPath, 'utf8')));
+    isKnown = db.isKnownDirective;
   } catch (e) {
     console.warn(`⚠ 지시어 데이터를 못 읽음(${e.message}) — 다음 줄 추정/모르는 지시어 목록이 비활성화됩니다.\n`);
   }
@@ -107,7 +113,7 @@ function main(argv) {
     } catch {
       continue;
     }
-    const { diagnostics, unknown } = scanText(text, isKnown);
+    const { diagnostics, unknown } = scanText(text, isKnown, db, file);
     for (const [k, v] of unknown) unknownTotal.set(k, (unknownTotal.get(k) || 0) + v);
     if (diagnostics.length === 0) continue;
     filesWithIssues++;

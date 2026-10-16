@@ -18,3 +18,8 @@ test('get 은 family 별 entry 배열', () => {
   assert.equal(e[0].family, 'http');
   assert.deepEqual(db.get('nope'), []);
 });
+
+test('all() 은 family 별 entry 를 모두 돌려준다', () => {
+  assert.ok(db.all().length >= 2);
+  assert.ok(db.all().every((e) => e.name && e.family));
+});

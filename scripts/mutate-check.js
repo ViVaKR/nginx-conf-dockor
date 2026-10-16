@@ -39,7 +39,11 @@ function main(argv) {
   const di = args.indexOf('--data');
   const dataPath = di >= 0 ? args.splice(di, 2)[1] : path.join(__dirname, '..', 'data', 'nginx-directives.json');
   const target = args[0];
-  if (!target || !fs.existsSync(target)) {
+  if (target && !fs.existsSync(target)) {
+    console.error(`경로를 찾을 수 없습니다: ${target}`);
+    process.exit(1);
+  }
+  if (!target) {
     console.error('사용법: npm run mutate -- <설정파일> [--data 지시어.json]');
     process.exit(1);
   }
