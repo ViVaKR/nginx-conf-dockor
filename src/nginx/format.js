@@ -17,20 +17,17 @@
 const { parse } = require('./parser');
 const { TokenType: T } = require('./tokenizer');
 
-// @ts-ignore
 function visualWidth(ws, tabSize) {
   let w = 0;
   for (const c of ws) w += c === '\t' ? tabSize - (w % tabSize) : 1;
   return w;
 }
 
-// @ts-ignore
 function makeIndent(width, { tabSize, insertSpaces }) {
   if (insertSpaces) return ' '.repeat(width);
   return '\t'.repeat(Math.floor(width / tabSize)) + ' '.repeat(width % tabSize);
 }
 
-// @ts-ignore
 function collectStarts(children, set) {
   for (const d of children) {
     if (d.nameToken) set.add(d.nameToken.start);
@@ -49,7 +46,6 @@ function formatLines(text, opts = {}) {
 
   const parsed = parse(text, { isKnownDirective: opts.isKnownDirective });
   const { tokens, positionAt } = parsed;
-  // @ts-ignore
   const lineOf = (off) => positionAt(off).line;
 
   const rawLines = text.split('\n');
@@ -65,7 +61,6 @@ function formatLines(text, opts = {}) {
 
   // 줄별 "첫 토큰 + 그 시점의 깊이/문장 진행 여부", 여러 줄 토큰, 줄별 '{' 토큰
   const info = new Map();
-  // @ts-ignore
   const multi = [];
   const lbraces = new Map();
   let depth = 0;
@@ -96,9 +91,7 @@ function formatLines(text, opts = {}) {
     }
   }
 
-  // @ts-ignore
   const insideToken = (probe, lineStart) =>
-    // @ts-ignore
     multi.find((t) => t.start < lineStart && probe >= t.start && probe < t.end);
 
   const out = new Array(rawLines.length);
@@ -108,7 +101,6 @@ function formatLines(text, opts = {}) {
     const raw = rawLines[i];
     const cr = raw.endsWith('\r') ? '\r' : '';
     let body = cr ? raw.slice(0, -1) : raw;
-    // @ts-ignore
     const ws = /^[ \t]*/.exec(body)[0];
     const lineStart = lineStarts[i];
     const inside = insideToken(lineStart + ws.length, lineStart);
@@ -175,7 +167,6 @@ function formatLines(text, opts = {}) {
   return { lines: out, changed: out.map((l, i) => l !== rawLines[i]) };
 }
 
-// @ts-ignore
 function format(text, opts) {
   return formatLines(text, opts).lines.join('\n');
 }

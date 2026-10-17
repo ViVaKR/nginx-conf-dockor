@@ -4,7 +4,6 @@ const assert = require('node:assert/strict');
 const { format, formatLines } = require('../../src/nginx/format');
 
 const S4 = { tabSize: 4, insertSpaces: true };
-// @ts-ignore
 const lines = (s) => s.split('\n');
 
 test('블록 깊이대로 들여쓴다 (탭/공백이 뒤섞인 입력 → 공백 4칸)', () => {
@@ -148,13 +147,11 @@ test('중괄호가 안 맞아도 죽지 않고, 음수 들여쓰기가 없다', 
 test('세미콜론이 빠진 줄도 파서 판단으로 새 문장에 정렬 (지시어 데이터가 있을 때)', () => {
   const known = new Set(['listen', 'server_name', 'server']);
   const src = 'server {\nlisten 80\nserver_name x;\n}\n';
-  // @ts-ignore
   const withDb = format(src, { ...S4, isKnownDirective: (n) => known.has(n) });
   assert.equal(withDb, 'server {\n    listen 80\n    server_name x;\n}\n');
 });
 
 test('language-configuration.json: Enter 자동 들여쓰기 규칙이 올바른 정규식', () => {
-  // @ts-ignore
   const cfg = require('../../language-configuration.json');
   const inc = new RegExp(cfg.indentationRules.increaseIndentPattern);
   const dec = new RegExp(cfg.indentationRules.decreaseIndentPattern);
@@ -167,20 +164,10 @@ test('language-configuration.json: Enter 자동 들여쓰기 규칙이 올바른
 
 test('안전성: 포맷은 공백만 바꾼다 (토큰 열이 완전히 동일)', () => {
   const { tokenize } = require('../../src/nginx/tokenizer');
-  // @ts-ignore
-  // RAW 토큰 내부의 들여쓰기 공백 변화는 포맷팅에 의한 정당한 변경이므로 공백 연속을 정규화
-  // const sig = (t) =>
-  //   tokenize(t).tokens.map((x) => {
-  //     const val = x.type === 'raw' ? x.value.replace(/[ \t]+/g, ' ') : x.value;
-  //     return `${x.type}:${val}`;
-  //   }).join('\u0001');
-  // const sig = (t) => tokenize(t).tokens.map((x) => `${x.type}:${x.value}`).join('\u0001');
-  // 포맷팅에 의해 토큰 주변의 공백(들여쓰기)이 바뀌므로
-  // 토큰값(x.value)의 앞뒤 공백을 trim 하여 pure 토큰 열만 비교
+  // lua 본문(raw)은 블록 위치에 맞춰 일부러 이동하므로 공백만 무시하고 비교, 나머지 토큰은 글자 하나까지 동일해야 한다.
   const sig = (t) =>
     tokenize(t)
-      .tokens.map((x) => `${x.type}:${x.value.trim()}`)
-      .filter((s) => !s.startsWith('raw:')) // RAW 토큰 내부 줄바꿈/공백 차이 제외 시
+      .tokens.map((x) => `${x.type}:${x.type === 'raw' ? x.value.replace(/\s+/g, ' ').trim() : x.value}`)
       .join('\u0001');
   const src = `http {
 \tlog_format main '$a'

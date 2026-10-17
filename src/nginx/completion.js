@@ -202,7 +202,7 @@ function renderDoc(group) {
   for (const e of group.entries) {
     // family 표시는 코드 블록 "앞"의 별도 줄에 둔다. 닫는 펜스(```) 뒤에 글자가 붙으면
     // 마크다운이 펜스를 닫지 않아 이후 내용 전체가 코드 블록으로 렌더링된다.
-    if (group.entries.length > 1) parts.push(`_(${e.family})_`);
+    if (new Set(group.entries.map((x) => x.family)).size > 1) parts.push(`_(${e.family})_`);
     parts.push(`\`\`\`nginx\n${e.syntaxes.map((s) => s.line).join('\n')}\n\`\`\``);
     if (e.default) parts.push(`**기본값:** \`${e.default}\``);
     if (e.contexts && e.contexts.length) parts.push(`**컨텍스트:** ${e.contexts.map((c) => `\`${c}\``).join(', ')}`);

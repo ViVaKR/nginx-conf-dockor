@@ -8,11 +8,9 @@ const { formatLines } = require('./nginx/format');
 
 const LANGUAGE_ID = 'nginx';
 
-// @ts-ignore
 function registerFormatter(context, db) {
   const isKnownDirective = db ? db.isKnownDirective : undefined;
 
-  // @ts-ignore
   function toEdits(doc, options, range) {
     const text = doc.getText();
     const { lines } = formatLines(text, {

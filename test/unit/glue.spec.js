@@ -11,6 +11,8 @@ function makeFake() {
   const providers = [];
   const completionProviders = [];
   const hoverProviders = [];
+  const formatProviders = [];
+  const rangeFormatProviders = [];
   const collection = { last: null, set(uri, d) { this.last = d; }, delete() {}, dispose() {} };
   class Position { constructor(l, c) { this.line = l; this.character = c; } }
   class Range { constructor(a, b) { this.start = a; this.end = b; } }
@@ -18,6 +20,7 @@ function makeFake() {
   class CodeAction { constructor(title, kind) { this.title = title; this.kind = kind; } }
   class CompletionItem { constructor(label, kind) { this.label = label; this.kind = kind; } }
   class CompletionList { constructor(items, incomplete) { this.items = items; this.isIncomplete = incomplete; } }
+  class TextEdit { static replace(range, newText) { return { range, newText }; } }
   class Hover { constructor(contents, range) { this.contents = contents; this.range = range; } }
   class SnippetString { constructor(value) { this.value = value; } }
   class MarkdownString { constructor(value) { this.value = value; } }
@@ -36,13 +39,15 @@ function makeFake() {
   };
   const vscode = {
     Position, Range, Diagnostic, CodeAction, WorkspaceEdit,
-    CompletionItem, CompletionList, SnippetString, MarkdownString, Hover,
+    CompletionItem, CompletionList, SnippetString, MarkdownString, Hover, TextEdit,
     CompletionItemKind: { Keyword: 13, Struct: 21, Variable: 5 },
     DiagnosticSeverity: { Error: 0, Warning: 1, Information: 2, Hint: 3 },
     CodeActionKind: { QuickFix: 'quickfix' },
     languages: {
       createDiagnosticCollection: () => collection,
       registerCodeActionsProvider: (sel, p) => { providers.push(p); return { dispose() {} }; },
+      registerDocumentFormattingEditProvider: (sel, p) => { formatProviders.push(p); return { dispose() {} }; },
+      registerDocumentRangeFormattingEditProvider: (sel, p) => { rangeFormatProviders.push(p); return { dispose() {} }; },
       registerHoverProvider: (sel, p) => { hoverProviders.push(p); return { dispose() {} }; },
       registerCompletionItemProvider: (sel, p) => { completionProviders.push(p); return { dispose() {} }; },
     },
@@ -56,7 +61,7 @@ function makeFake() {
     },
     window: { visibleTextEditors: [], onDidChangeTextEditorSelection: sub('selection') },
   };
-  return { vscode, doc, collection, cfg, handlers, providers, completionProviders, hoverProviders };
+  return { vscode, doc, collection, cfg, handlers, providers, completionProviders, hoverProviders, formatProviders, rangeFormatProviders };
 }
 
 function load(fake) {
@@ -64,13 +69,14 @@ function load(fake) {
   Module._load = function (req, ...rest) {
     return req === 'vscode' ? fake.vscode : orig.call(this, req, ...rest);
   };
-  for (const k of Object.keys(require.cache)) if (/[\\/]src[\\/](diagnostics|quickfix|completion|hover)\.js$|[\\/]extension\.js$/.test(k)) delete require.cache[k];
+  for (const k of Object.keys(require.cache)) if (/[\\/]src[\\/](diagnostics|quickfix|completion|hover|format)\.js$|[\\/]extension\.js$/.test(k)) delete require.cache[k];
   try {
     return {
       diagnostics: require('../../src/diagnostics'),
       quickfix: require('../../src/quickfix'),
       completion: require('../../src/completion'),
       hover: require('../../src/hover'),
+      format: require('../../src/format'),
     };
   } finally {
     Module._load = orig;
@@ -223,4 +229,60 @@ test('진단: 컨텍스트 오류(server 안의 proxy_pass)가 경고로 나오�
   fake.cfg.contextSeverity = 'off';
   fake.handlers.config({ affectsConfiguration: () => true });
   assert.equal(fake.collection.last.some((x) => x.code === 'directive-not-allowed'), false);
+});
+
+// 편집을 문자열에 적용해 보는 도우미 (줄 단위 교체)
+function applyLineEdits(text, edits) {
+  const ls = text.split('\n');
+  for (const e of edits) {
+    const i = e.range.start.line;
+    ls[i] = e.newText + (ls[i].endsWith('\r') ? '\r' : '');
+  }
+  return ls.join('\n');
+}
+
+test('포매터: 문서 전체 — 바뀐 줄만 편집으로 돌려준다', () => {
+  const fake = makeFake();
+  fake.doc.text = 'http {\n   server {\nlisten 80;\n  }\n}\n';
+  const { format } = load(fake);
+  format.registerFormatter({ subscriptions: [] }, dbC);
+
+  const edits = fake.formatProviders[0].provideDocumentFormattingEdits(fake.doc, { tabSize: 4, insertSpaces: true });
+  assert.equal(applyLineEdits(fake.doc.text, edits), 'http {\n    server {\n        listen 80;\n    }\n}\n');
+  assert.equal(edits.length, 3); // 안 바뀐 첫 줄/마지막 줄은 편집 없음
+});
+
+test('포매터: 선택 영역 — 범위 안의 줄만', () => {
+  const fake = makeFake();
+  fake.doc.text = 'http {\nserver {\nlisten 80;\n}\n}\n';
+  const { format } = load(fake);
+  format.registerFormatter({ subscriptions: [] }, dbC);
+
+  const range = { start: { line: 2, character: 0 }, end: { line: 2, character: 9 } };
+  const edits = fake.rangeFormatProviders[0].provideDocumentRangeFormattingEdits(
+    fake.doc, range, { tabSize: 4, insertSpaces: true });
+  assert.equal(edits.length, 1);
+  assert.equal(edits[0].range.start.line, 2);
+  assert.equal(edits[0].newText, '        listen 80;'); // 깊이는 문서 전체 맥락으로 계산
+});
+
+test('포매터: CRLF 문서 — 편집 범위는 \\r 제외, 새 텍스트에 \\r 없음', () => {
+  const fake = makeFake();
+  fake.doc.text = 'server {\r\nlisten 80;\r\n}\r\n';
+  const { format } = load(fake);
+  format.registerFormatter({ subscriptions: [] }, dbC);
+
+  const edits = fake.formatProviders[0].provideDocumentFormattingEdits(fake.doc, { tabSize: 4, insertSpaces: true });
+  assert.equal(edits.length, 1);
+  assert.equal(edits[0].range.end.character, 'listen 80;'.length);
+  assert.ok(!edits[0].newText.includes('\r'));
+  assert.equal(applyLineEdits(fake.doc.text, edits), 'server {\r\n    listen 80;\r\n}\r\n');
+});
+
+test('포매터: 이미 정리된 문서는 편집 0개 / db 없이도 동작', () => {
+  const fake = makeFake();
+  fake.doc.text = 'server {\n    listen 80;\n}\n';
+  const { format } = load(fake);
+  format.registerFormatter({ subscriptions: [] }, null);
+  assert.deepEqual(fake.formatProviders[0].provideDocumentFormattingEdits(fake.doc, { tabSize: 4, insertSpaces: true }), []);
 });

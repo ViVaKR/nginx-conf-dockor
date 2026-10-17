@@ -174,6 +174,11 @@ npx vsce package
 
 ## 📝 릴리스 노트
 
+### 0.0.6
+
+- Nginx 전용 포맷터(Document Formatting Provider) 들여쓰기 규칙 개선
+- 버그 수정, tests 153
+
 ### 0.0.5
 
 - Nginx 전용 포맷터(Document Formatting Provider) 탑재 및 들여쓰기 규칙 개선
