@@ -31,6 +31,13 @@ function decode(s) {
 
 function stripTags(xml, { backticks = false } = {}) {
   let s = xml || '';
+  // <link doc="../server_names.xml"/> 처럼 내용 없는 링크는 태그를 지우면 빈 따옴표만 남으므로
+  // 지시어 id 또는 문서 파일명으로 대체한다.
+  s = s.replace(/<link\b([^>]*?)\/>/g, (_, attrs) => {
+    const a = parseAttrs(attrs);
+    if (a.id) return backticks ? `\`${a.id}\`` : a.id;
+    return a.doc ? path.basename(a.doc, '.xml') : '';
+  });
   if (backticks) s = s.replace(/<literal>([\s\S]*?)<\/literal>/g, '`$1`');
   s = s.replace(/<[^>]+>/g, '');
   return decode(s).replace(/\s+/g, ' ').trim();

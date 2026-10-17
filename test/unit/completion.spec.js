@@ -200,3 +200,12 @@ test('문서/상세', () => {
   assert.match(C.renderDoc(group('listen')), /_\(http\)_/); // 여러 family 면 표시
   assert.equal(C.detailOf(group('return')), 'server, location, if in server, if in location');
 });
+
+test('문서 마크다운이 올바르게 닫힌다 (여러 family 항목이어도 코드 펜스가 깨지지 않음)', () => {
+  const md = C.renderDoc(group('listen')); // http / stream 두 항목
+  const fenceLines = md.split('\n').filter((l) => l.trimStart().startsWith('```'));
+  assert.equal(fenceLines.length % 2, 0, '여는/닫는 펜스 개수가 짝이 맞아야 한다');
+  // 닫는 펜스 줄에는 펜스 말고 다른 글자가 없어야 한다
+  fenceLines.filter((_, i) => i % 2 === 1).forEach((l) => assert.equal(l.trim(), '```'));
+  assert.match(md, /^_\(http\)_$/m); // family 표시는 자기 줄에
+});

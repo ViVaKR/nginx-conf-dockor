@@ -67,6 +67,11 @@
       "file": "http/ngx_http_dav_module.xml"
     },
     {
+      "name": "Module ngx_http_db_module",
+      "family": "http",
+      "file": "http/ngx_http_db_module.xml"
+    },
+    {
       "name": "Module ngx_http_empty_gif_module",
       "family": "http",
       "file": "http/ngx_http_empty_gif_module.xml"
@@ -550,7 +555,7 @@
         "events"
       ],
       "default": "off",
-      "description": "If `accept_mutex` is enabled, worker processes will accept new connections by turn. Otherwise, all worker processes will be notified about new connections, and if volume of new connections is low, some of the worker processes may just waste system resources. There is no need to enable `accept_mutex` on systems that support the EPOLLEXCLUSIVE flag (1.11.3) or when using . Prior to version 1.11.3, the default value was `on`.",
+      "description": "If `accept_mutex` is enabled, worker processes will accept new connections by turn. Otherwise, all worker processes will be notified about new connections, and if volume of new connections is low, some of the worker processes may just waste system resources. There is no need to enable `accept_mutex` on systems that support the EPOLLEXCLUSIVE flag (1.11.3) or when using `reuseport`. Prior to version 1.11.3, the default value was `on`.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#accept_mutex"
     },
     {
@@ -569,7 +574,7 @@
         "events"
       ],
       "default": "500ms",
-      "description": "If is enabled, specifies the maximum time during which a worker process will try to restart accepting new connections if another worker process is currently accepting new connections.",
+      "description": "If `accept_mutex` is enabled, specifies the maximum time during which a worker process will try to restart accepting new connections if another worker process is currently accepting new connections.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#accept_mutex_delay"
     },
     {
@@ -803,7 +808,7 @@
         "if in location"
       ],
       "default": "on",
-      "description": "Allows altering inheritance rules for the values specified in the directives. By default, the standard inheritance model is used.",
+      "description": "Allows altering inheritance rules for the values specified in the `add_header` directives. By default, the standard inheritance model is used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header_inherit"
     },
     {
@@ -847,7 +852,7 @@
         "if in location"
       ],
       "default": "on",
-      "description": "Allows altering inheritance rules for the values specified in the directives. By default, the standard inheritance model is used.",
+      "description": "Allows altering inheritance rules for the values specified in the `add_trailer` directives. By default, the standard inheritance model is used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_trailer_inherit"
     },
     {
@@ -910,7 +915,7 @@
         "location"
       ],
       "default": "off",
-      "description": "If is enabled, specifies whether it is used for writing files. Currently, this only works when using `aio threads` and is limited to writing temporary files with data received from proxied servers.",
+      "description": "If `aio` is enabled, specifies whether it is used for writing files. Currently, this only works when using `aio threads` and is limited to writing temporary files with data received from proxied servers.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#aio_write"
     },
     {
@@ -1598,7 +1603,7 @@
         "if in location"
       ],
       "default": "off",
-      "description": "Adds the specified charset to the Content-Type response header field. If this charset is different from the charset specified in the directive, a conversion is performed.",
+      "description": "Adds the specified charset to the Content-Type response header field. If this charset is different from the charset specified in the `source_charset` directive, a conversion is performed.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_charset_module.html#charset"
     },
     {
@@ -1804,7 +1809,7 @@
         "server"
       ],
       "default": "1k",
-      "description": "Sets buffer size for reading client request header. For most requests, a buffer of 1K bytes is enough. However, if a request includes long cookies, or comes from a WAP client, it may not fit into 1K. If a request line or a request header field does not fit into this buffer then larger buffers, configured by the directive, are allocated.",
+      "description": "Sets buffer size for reading client request header. For most requests, a buffer of 1K bytes is enough. However, if a request includes long cookies, or comes from a WAP client, it may not fit into 1K. If a request line or a request header field does not fit into this buffer then larger buffers, configured by the `large_client_header_buffers` directive, are allocated.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_buffer_size"
     },
     {
@@ -2065,6 +2070,681 @@
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_dav_module.html#dav_methods"
     },
     {
+      "name": "db_auth",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "string",
+          "block": false,
+          "line": "db_auth string;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Specifies the password string used to authenticate connections to a database server. An empty value disables authentication. Authentication with a separate username and password arguments is not supported. location /db/ { db_pass redis_backend; db_auth secret; db_get $arg_key; }",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_auth"
+    },
+    {
+      "name": "db_bind",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "address [transparent] | off",
+          "block": false,
+          "line": "db_bind address [transparent] | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Makes outgoing connections to a database server originate from the specified local IP address with an optional port. Parameter value can contain variables. The special value `off` cancels the effect of the `db_bind` directive inherited from the previous configuration level, which allows the system to auto-assign the local IP address and port. Example: db_bind $server_addr;",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_bind"
+    },
+    {
+      "name": "db_buffer_size",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "size",
+          "block": false,
+          "line": "db_buffer_size size;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "4k|8k",
+      "description": "Sets the size of the buffer used for reading the database response. By default, the buffer size is equal to one memory page. This is either 4K or 8K, depending on a platform. It can be made smaller, however.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_buffer_size"
+    },
+    {
+      "name": "db_cache",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "zone [timeout=time] [max_size=size] [not_found=on|off|time]",
+          "block": false,
+          "line": "db_cache zone [timeout=time] [max_size=size] [not_found=on|off|time];"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Enables caching of database lookup results in a shared memory zone defined by the `keyval_zone` directive. The cache key is the value of the `db_get` directive, evaluated for the current request. If a cached result is found, it is returned without connecting to the database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_cache"
+    },
+    {
+      "name": "db_connect_timeout",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "time",
+          "block": false,
+          "line": "db_connect_timeout time;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "60s",
+      "description": "Defines a timeout for establishing a connection with a database server. It should be noted that this timeout cannot usually exceed 75 seconds.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_connect_timeout"
+    },
+    {
+      "name": "db_get",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "key",
+          "block": false,
+          "line": "db_get key;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Specifies the key to retrieve from the database. The key can contain text, variables, and their combination. An empty key is not allowed.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_get"
+    },
+    {
+      "name": "db_name",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "string",
+          "block": false,
+          "line": "db_name string;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Sets the database to use for lookup requests.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_name"
+    },
+    {
+      "name": "db_next_upstream",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "error | timeout | invalid_response | not_found off ...",
+          "block": false,
+          "line": "db_next_upstream error | timeout | invalid_response | not_found off ...;"
+        },
+        {
+          "text": "off",
+          "block": false,
+          "line": "db_next_upstream off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "error timeout",
+      "description": "Specifies the conditions under which a request can be passed to the next database server: `error` an error occurred while establishing a connection with the server, passing a request to it, or reading the response header; `timeout` a timeout has occurred while establishing a connection with the server, passing a request to it, or reading the response header; `invalid_response` server returned an invalid response. For the Redis backend, this also includes Redis error replies, such as authentication failures or key-value mismatch errors; `not_found` the requested key was not found. For the Redis backend, this corresponds to a nil reply to the `GET` command; The parameter cannot be used when caching of `not_found` results is enabled with the `db_cache` directive.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_next_upstream"
+    },
+    {
+      "name": "db_next_upstream_timeout",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "time",
+          "block": false,
+          "line": "db_next_upstream_timeout time;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "0",
+      "description": "Limits the time during which a request can be passed to the next server. The `0` value turns off this limitation.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_next_upstream_timeout"
+    },
+    {
+      "name": "db_next_upstream_tries",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "number",
+          "block": false,
+          "line": "db_next_upstream_tries number;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "0",
+      "description": "Limits the number of possible tries for passing a request to the next server. The limit includes the initial attempt. The `0` value turns off this limitation.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_next_upstream_tries"
+    },
+    {
+      "name": "db_pass",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "name",
+          "block": false,
+          "line": "db_pass name;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Specifies the upstream group used for database lookups: db_pass redis_backend; The group must be configured with `db_type`. A server address cannot be specified directly.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_pass"
+    },
+    {
+      "name": "db_read_timeout",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "time",
+          "block": false,
+          "line": "db_read_timeout time;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "60s",
+      "description": "Defines a timeout for reading data from a database server. The timeout is set only between two successive read operations, not for the transmission of the whole response. If the database server does not transmit anything within this time, the connection is closed.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_read_timeout"
+    },
+    {
+      "name": "db_send_timeout",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "time",
+          "block": false,
+          "line": "db_send_timeout time;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "60s",
+      "description": "Defines a timeout for sending data to a database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_send_timeout"
+    },
+    {
+      "name": "db_socket_keepalive",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "on | off",
+          "block": false,
+          "line": "db_socket_keepalive on | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "off",
+      "description": "Configures the “TCP keepalive” behavior for outgoing connections to a database server. If enabled, the `SO_KEEPALIVE` socket option is turned on.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_socket_keepalive"
+    },
+    {
+      "name": "db_ssl",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "on | off",
+          "block": false,
+          "line": "db_ssl on | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "off",
+      "description": "Enables TLS for connections to database servers.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl"
+    },
+    {
+      "name": "db_ssl_certificate",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_certificate file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Specifies a file with the certificate in the PEM format used for authentication to a database server. The corresponding `db_ssl_certificate_key` must also be configured.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_certificate"
+    },
+    {
+      "name": "db_ssl_certificate_cache",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "off",
+          "block": false,
+          "line": "db_ssl_certificate_cache off;"
+        },
+        {
+          "text": "max=number [inactive=time] [valid=time]",
+          "block": false,
+          "line": "db_ssl_certificate_cache max=number [inactive=time] [valid=time];"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "off",
+      "description": "Defines a cache that stores SSL certificates and secret keys specified with variables.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_certificate_cache"
+    },
+    {
+      "name": "db_ssl_certificate_key",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_certificate_key file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Specifies a file with the secret key in the PEM format for the certificate configured by the `db_ssl_certificate` directive.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_certificate_key"
+    },
+    {
+      "name": "db_ssl_ciphers",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "ciphers",
+          "block": false,
+          "line": "db_ssl_ciphers ciphers;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "DEFAULT",
+      "description": "Specifies the enabled ciphers for connections to database servers. The ciphers are specified in the format understood by the OpenSSL library.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_ciphers"
+    },
+    {
+      "name": "db_ssl_conf_command",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "name value",
+          "block": false,
+          "line": "db_ssl_conf_command name value;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Sets arbitrary OpenSSL configuration commands when establishing a connection with the database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_conf_command"
+    },
+    {
+      "name": "db_ssl_crl",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_crl file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Specifies a file with revoked certificates (CRL) in the PEM format used to verify the certificate of the database server. When using intermediate certificates, their CRLs should be specified in the same file.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_crl"
+    },
+    {
+      "name": "db_ssl_key_log",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_key_log file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Enables logging of database server connection SSL keys and specifies the path to the key log file. Keys are logged in the SSLKEYLOGFILE format compatible with Wireshark.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_key_log"
+    },
+    {
+      "name": "db_ssl_name",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "name",
+          "block": false,
+          "line": "db_ssl_name name;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Allows overriding the server name used to verify the database server certificate and to be passed through SNI when establishing a connection with the database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_name"
+    },
+    {
+      "name": "db_ssl_password_file",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_password_file file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Specifies a file with passphrases for secret keys where each passphrase is specified on a separate line. Passphrases are tried in turn when loading the key.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_password_file"
+    },
+    {
+      "name": "db_ssl_protocols",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "[SSLv2] [SSLv3] [TLSv1] [TLSv1.1] [TLSv1.2] [TLSv1.3]",
+          "block": false,
+          "line": "db_ssl_protocols [SSLv2] [SSLv3] [TLSv1] [TLSv1.1] [TLSv1.2] [TLSv1.3];"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "TLSv1.2 TLSv1.3",
+      "description": "Enables the specified protocols for connections to database servers.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_protocols"
+    },
+    {
+      "name": "db_ssl_server_name",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "on | off",
+          "block": false,
+          "line": "db_ssl_server_name on | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "off",
+      "description": "Enables or disables passing of the server name through TLS Server Name Indication extension (SNI, RFC 6066) when establishing a connection with the database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_server_name"
+    },
+    {
+      "name": "db_ssl_session_reuse",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "on | off",
+          "block": false,
+          "line": "db_ssl_session_reuse on | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "on",
+      "description": "Determines whether SSL sessions can be reused when working with the database server. If the errors “`digest check failed`” appear in the logs, try disabling session reuse.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_session_reuse"
+    },
+    {
+      "name": "db_ssl_trusted_certificate",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "file",
+          "block": false,
+          "line": "db_ssl_trusted_certificate file;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": null,
+      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify the certificate of the database server.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_trusted_certificate"
+    },
+    {
+      "name": "db_ssl_verify",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "on | off",
+          "block": false,
+          "line": "db_ssl_verify on | off;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "off",
+      "description": "Enables or disables verification of the database server certificate. The `db_ssl_trusted_certificate` directive must also be configured. The directive is required when `db_ssl_verify` is enabled.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_verify"
+    },
+    {
+      "name": "db_ssl_verify_depth",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "number",
+          "block": false,
+          "line": "db_ssl_verify_depth number;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "http",
+        "server",
+        "location"
+      ],
+      "default": "1",
+      "description": "Sets the verification depth in the database server certificate chain. The directive is required when `db_ssl_verify` is enabled.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_ssl_verify_depth"
+    },
+    {
+      "name": "db_type",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "type",
+          "block": false,
+          "line": "db_type type;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "upstream"
+      ],
+      "default": null,
+      "description": "Sets the database protocol used by the upstream group. Currently, only `redis` is supported: upstream redis_backend { server 127.0.0.1:6379; db_type redis; } The protocol name is case-insensitive.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_type"
+    },
+    {
+      "name": "db_var",
+      "family": "http",
+      "module": "Module ngx_http_db_module",
+      "syntaxes": [
+        {
+          "text": "$variable location=URI query=string [default=string]",
+          "block": false,
+          "line": "db_var $variable location=URI query=string [default=string];"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "server",
+        "location",
+        "if in location"
+      ],
+      "default": null,
+      "description": "Creates a variable whose value is obtained from the response body of a subrequest. The `location` parameter sets the subrequest URI. The `query` parameter sets its query string. An empty query string can be specified explicitly: db_var $configuration /_configuration \"\"; The parameter values can contain text, variables, and their combination.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_db_module.html#db_var"
+    },
+    {
       "name": "debug_connection",
       "family": "core",
       "module": "Core functionality",
@@ -2080,7 +2760,7 @@
         "events"
       ],
       "default": null,
-      "description": "Enables debugging log for selected client connections. Other connections will use logging level set by the directive. Debugged connections are specified by IPv4 or IPv6 (1.3.0, 1.2.1) address or network. A connection may also be specified using a hostname. For connections using UNIX-domain sockets (1.3.0, 1.2.1), debugging log is enabled by the “`unix:`” parameter. events { debug_connection 127.0.0.1; debug_connection localhost; debug_connection 192.0.2.0/24; debug_connection ::1; debug_connection 2001:0db8::/32; debug_connection unix:; ... } For this directive to work, nginx needs to be built with `--with-debug`, see “”.",
+      "description": "Enables debugging log for selected client connections. Other connections will use logging level set by the `error_log` directive. Debugged connections are specified by IPv4 or IPv6 (1.3.0, 1.2.1) address or network. A connection may also be specified using a hostname. For connections using UNIX-domain sockets (1.3.0, 1.2.1), debugging log is enabled by the “`unix:`” parameter. events { debug_connection 127.0.0.1; debug_connection localhost; debug_connection 192.0.2.0/24; debug_connection ::1; debug_connection 2001:0db8::/32; debug_connection unix:; ... } For this directive to work, nginx needs to be built with `--with-debug`, see “debugging_log”.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#debug_connection"
     },
     {
@@ -2120,7 +2800,7 @@
         "location"
       ],
       "default": "text/plain",
-      "description": "Defines the default MIME type of a response. Mapping of file name extensions to MIME types can be set with the directive.",
+      "description": "Defines the default MIME type of a response. Mapping of file name extensions to MIME types can be set with the `types` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#default_type"
     },
     {
@@ -2183,7 +2863,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables the use of the O_DIRECT flag (FreeBSD, Linux), the F_NOCACHE flag (macOS), or the directio function (Solaris), when reading files that are larger than or equal to the specified size. The directive automatically disables (0.7.15) the use of for a given request. It can be useful for serving large files: directio 4m; or when using on Linux.",
+      "description": "Enables the use of the O_DIRECT flag (FreeBSD, Linux), the F_NOCACHE flag (macOS), or the directio function (Solaris), when reading files that are larger than or equal to the specified size. The directive automatically disables (0.7.15) the use of `sendfile` for a given request. It can be useful for serving large files: directio 4m; or when using `aio` on Linux.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#directio"
     },
     {
@@ -2204,7 +2884,7 @@
         "location"
       ],
       "default": "512",
-      "description": "Sets the alignment for . In most cases, a 512-byte alignment is enough. However, when using XFS under Linux, it needs to be increased to 4K.",
+      "description": "Sets the alignment for `directio`. In most cases, a 512-byte alignment is enough. However, when using XFS under Linux, it needs to be increased to 4K.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#directio_alignment"
     },
     {
@@ -2667,7 +3347,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "When buffering of responses from the FastCGI server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the and directives.",
+      "description": "When buffering of responses from the FastCGI server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the `fastcgi_buffer_size` and `fastcgi_buffers` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_busy_buffers_size"
     },
     {
@@ -2730,7 +3410,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: fastcgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; fastcgi_cache_bypass $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: fastcgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; fastcgi_cache_bypass $http_pragma $http_authorization; Can be used along with the `fastcgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_cache_bypass"
     },
     {
@@ -2772,7 +3452,7 @@
         "location"
       ],
       "default": "off",
-      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the directive by passing a request to a FastCGI server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the directive.",
+      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the `fastcgi_cache_key` directive by passing a request to a FastCGI server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the `fastcgi_cache_lock_timeout` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_cache_lock"
     },
     {
@@ -2814,7 +3494,7 @@
         "location"
       ],
       "default": "5s",
-      "description": "Sets a timeout for . When the time expires, the request will be passed to the FastCGI server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
+      "description": "Sets a timeout for `fastcgi_cache_lock`. When the time expires, the request will be passed to the FastCGI server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_cache_lock_timeout"
     },
     {
@@ -2856,7 +3536,7 @@
         "location"
       ],
       "default": "GET HEAD",
-      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the directive.",
+      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the `fastcgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_cache_methods"
     },
     {
@@ -2959,7 +3639,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the FastCGI server. The directive’s parameters match the parameters of the directive.",
+      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the FastCGI server. The directive’s parameters match the parameters of the `fastcgi_next_upstream` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_cache_use_stale"
     },
     {
@@ -3064,7 +3744,7 @@
         "location"
       ],
       "default": null,
-      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of a FastCGI server to a client. The `fastcgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the directive can be used.",
+      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of a FastCGI server to a client. The `fastcgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the `fastcgi_pass_header` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_hide_header"
     },
     {
@@ -3148,7 +3828,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines whether FastCGI server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the directive.",
+      "description": "Determines whether FastCGI server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the `error_page` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_intercept_errors"
     },
     {
@@ -3169,7 +3849,7 @@
         "location"
       ],
       "default": "off",
-      "description": "By default, a FastCGI server will close a connection right after sending the response. However, when this directive is set to the value `on`, nginx will instruct a FastCGI server to keep connections open. This is necessary, in particular, for connections to FastCGI servers to function.",
+      "description": "By default, a FastCGI server will close a connection right after sending the response. However, when this directive is set to the value `on`, nginx will instruct a FastCGI server to keep connections open. This is necessary, in particular, for `keepalive` connections to FastCGI servers to function.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_keep_conn"
     },
     {
@@ -3211,7 +3891,7 @@
         "location"
       ],
       "default": "1024m",
-      "description": "When buffering of responses from the FastCGI server is enabled, and the whole response does not fit into the buffers set by the and directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the directive.",
+      "description": "When buffering of responses from the FastCGI server is enabled, and the whole response does not fit into the buffers set by the `fastcgi_buffer_size` and `fastcgi_buffers` directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the `fastcgi_temp_file_write_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_max_temp_file_size"
     },
     {
@@ -3295,7 +3975,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: fastcgi_no_cache $cookie_nocache $arg_nocache$arg_comment; fastcgi_no_cache $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: fastcgi_no_cache $cookie_nocache $arg_nocache$arg_comment; fastcgi_no_cache $http_pragma $http_authorization; Can be used along with the `fastcgi_cache_bypass` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_no_cache"
     },
     {
@@ -3378,7 +4058,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the original request body is passed to the FastCGI server. See also the directive.",
+      "description": "Indicates whether the original request body is passed to the FastCGI server. See also the `fastcgi_pass_request_headers` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass_request_body"
     },
     {
@@ -3399,7 +4079,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the header fields of the original request are passed to the FastCGI server. See also the directive.",
+      "description": "Indicates whether the header fields of the original request are passed to the FastCGI server. See also the `fastcgi_pass_request_body` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass_request_headers"
     },
     {
@@ -3483,7 +4163,7 @@
         "location"
       ],
       "default": "0",
-      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a FastCGI server by using either NOTE_LOWAT flag of the method, or the SO_SNDLOWAT socket option, with the specified size.",
+      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a FastCGI server by using either NOTE_LOWAT flag of the `kqueue` method, or the SO_SNDLOWAT socket option, with the specified size.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_send_lowat"
     },
     {
@@ -3607,7 +4287,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives or . The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: fastcgi_store /data/www$original_uri;",
+      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives `alias` or `root`. The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: fastcgi_store /data/www$original_uri;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_store"
     },
     {
@@ -3649,7 +4329,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the FastCGI server to temporary files is enabled. By default, size is limited by two buffers set by the and directives. The maximum size of a temporary file is set by the directive.",
+      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the FastCGI server to temporary files is enabled. By default, size is limited by two buffers set by the `fastcgi_buffer_size` and `fastcgi_buffers` directives. The maximum size of a temporary file is set by the `fastcgi_max_temp_file_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_temp_file_write_size"
     },
     {
@@ -3765,7 +4445,7 @@
         "http"
       ],
       "default": null,
-      "description": "Specifies a database used to determine the country, region, and city depending on the client IP address. The following variables are available when using this database: $geoip_area_code telephone area code (US only). This variable may contain outdated information since the corresponding database field is deprecated. $geoip_city_continent_code two-letter continent code, for example, “`EU`”, “`NA`”. $geoip_city_country_code two-letter country code, for example, “`RU`”, “`US`”. $geoip_city_country_code3 three-letter country code, for example, “`RUS`”, “`USA`”. $geoip_city_country_name country name, for example, “`Russian Federation`”, “`United States`”. $geoip_dma_code DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. $geoip_latitude latitude. $geoip_longitude longitude. $geoip_region two-symbol country region code (region, territory, state, province, federal land and the like), for example, “`48`”, “`DC`”. $geoip_region_name country region name (region, territory, state, province, federal land and the like), for example, “`Moscow City`”, “`District of Columbia`”. $geoip_city city name, for example, “`Moscow`”, “`Washington`”. $geoip_postal_code postal code.",
+      "description": "Specifies a database used to determine the country, region, and city depending on the client IP address. The following variables are available when using this database: $geoip_area_code telephone area code (US only). This variable may contain outdated information since the corresponding database field is deprecated. $geoip_city_continent_code two-letter continent code, for example, “`EU`”, “`NA`”. $geoip_city_country_code two-letter country code, for example, “`RU`”, “`US`”. $geoip_city_country_code3 three-letter country code, for example, “`RUS`”, “`USA`”. $geoip_city_country_name country name, for example, “`Russian Federation`”, “`United States`”. $geoip_dma_code DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. This variable may contain outdated information since the corresponding database field is deprecated. $geoip_latitude latitude. $geoip_longitude longitude. $geoip_region country region code (region, territory, state, province, federal land and the like). $geoip_region_name country region name (region, territory, state, province, federal land and the like), for example, “`Moscow City`”, “`District of Columbia`”. $geoip_city city name, for example, “`Moscow`”, “`Washington`”. $geoip_postal_code postal code.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_geoip_module.html#geoip_city"
     },
     {
@@ -3784,7 +4464,7 @@
         "stream"
       ],
       "default": null,
-      "description": "Specifies a database used to determine the country, region, and city depending on the client IP address. The following variables are available when using this database: $geoip_area_code telephone area code (US only). This variable may contain outdated information since the corresponding database field is deprecated. $geoip_city_continent_code two-letter continent code, for example, “`EU`”, “`NA`”. $geoip_city_country_code two-letter country code, for example, “`RU`”, “`US`”. $geoip_city_country_code3 three-letter country code, for example, “`RUS`”, “`USA`”. $geoip_city_country_name country name, for example, “`Russian Federation`”, “`United States`”. $geoip_dma_code DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. $geoip_latitude latitude. $geoip_longitude longitude. $geoip_region two-symbol country region code (region, territory, state, province, federal land and the like), for example, “`48`”, “`DC`”. $geoip_region_name country region name (region, territory, state, province, federal land and the like), for example, “`Moscow City`”, “`District of Columbia`”. $geoip_city city name, for example, “`Moscow`”, “`Washington`”. $geoip_postal_code postal code.",
+      "description": "Specifies a database used to determine the country, region, and city depending on the client IP address. The following variables are available when using this database: $geoip_area_code telephone area code (US only). This variable may contain outdated information since the corresponding database field is deprecated. $geoip_city_continent_code two-letter continent code, for example, “`EU`”, “`NA`”. $geoip_city_country_code two-letter country code, for example, “`RU`”, “`US`”. $geoip_city_country_code3 three-letter country code, for example, “`RUS`”, “`USA`”. $geoip_city_country_name country name, for example, “`Russian Federation`”, “`United States`”. $geoip_dma_code DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. This variable may contain outdated information since the corresponding database field is deprecated. $geoip_latitude latitude. $geoip_longitude longitude. $geoip_region country region code (region, territory, state, province, federal land and the like). $geoip_region_name country region name (region, territory, state, province, federal land and the like), for example, “`Moscow City`”, “`District of Columbia`”. $geoip_city city name, for example, “`Moscow`”, “`Washington`”. $geoip_postal_code postal code.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_geoip_module.html#geoip_city"
     },
     {
@@ -4043,7 +4723,7 @@
         "location"
       ],
       "default": null,
-      "description": "By default, nginx does not pass the header fields Date, Server, and X-Accel-... from the response of a gRPC server to a client. The `grpc_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the directive can be used.",
+      "description": "By default, nginx does not pass the header fields Date, Server, and X-Accel-... from the response of a gRPC server to a client. The `grpc_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the `grpc_pass_header` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_grpc_module.html#grpc_hide_header"
     },
     {
@@ -4085,7 +4765,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines whether gRPC server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the directive.",
+      "description": "Determines whether gRPC server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the `error_page` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_grpc_module.html#grpc_intercept_errors"
     },
     {
@@ -4677,7 +5357,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables decompression of gzipped responses for clients that lack gzip support. If enabled, the following directives are also taken into account when determining if clients support gzip: , , and . See also the directive.",
+      "description": "Enables or disables decompression of gzipped responses for clients that lack gzip support. If enabled, the following directives are also taken into account when determining if clients support gzip: `gzip_http_version`, `gzip_proxied`, and `gzip_disable`. See also the `gzip_vary` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_gunzip_module.html#gunzip"
     },
     {
@@ -4867,7 +5547,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables (“`on`”) or disables (“`off`”) checking the existence of precompressed files. The following directives are also taken into account: , , , and .",
+      "description": "Enables (“`on`”) or disables (“`off`”) checking the existence of precompressed files. The following directives are also taken into account: `gzip_http_version`, `gzip_proxied`, `gzip_disable`, and `gzip_vary`.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html#gzip_static"
     },
     {
@@ -4909,7 +5589,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables inserting the Vary: Accept-Encoding response header field if the directives , , or are active.",
+      "description": "Enables or disables inserting the Vary: Accept-Encoding response header field if the directives `gzip`, `gzip_static`, or `gunzip` are active.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_vary"
     },
     {
@@ -5005,7 +5685,7 @@
         "server"
       ],
       "default": "5s",
-      "description": "Overrides the value for health checks.",
+      "description": "Overrides the `proxy_timeout` value for health checks.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_upstream_hc_module.html#health_check_timeout"
     },
     {
@@ -5229,7 +5909,7 @@
         "server"
       ],
       "default": "3m",
-      "description": "This directive is obsolete since version 1.19.7. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.19.7. The `keepalive_timeout` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_idle_timeout"
     },
     {
@@ -5289,7 +5969,7 @@
         "server"
       ],
       "default": "4k",
-      "description": "This directive is obsolete since version 1.19.7. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.19.7. The `large_client_header_buffers` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_max_field_size"
     },
     {
@@ -5309,7 +5989,7 @@
         "server"
       ],
       "default": "16k",
-      "description": "This directive is obsolete since version 1.19.7. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.19.7. The `large_client_header_buffers` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_max_header_size"
     },
     {
@@ -5329,7 +6009,7 @@
         "server"
       ],
       "default": "1000",
-      "description": "This directive is obsolete since version 1.19.7. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.19.7. The `keepalive_requests` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_max_requests"
     },
     {
@@ -5350,7 +6030,7 @@
         "location"
       ],
       "default": "off",
-      "description": "This directive is obsolete since version 1.25.1. The directive can be used instead.",
+      "description": "This directive is obsolete since version 1.25.1. The `early_hints` directive can be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_push"
     },
     {
@@ -5410,7 +6090,7 @@
         "server"
       ],
       "default": "30s",
-      "description": "This directive is obsolete since version 1.19.7. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.19.7. The `client_header_timeout` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v2_module.html#http2_recv_timeout"
     },
     {
@@ -5551,7 +6231,7 @@
         "server"
       ],
       "default": "on",
-      "description": "Controls whether header fields with invalid names should be ignored. Valid names are composed of English letters, digits, hyphens, and possibly underscores (as controlled by the directive).",
+      "description": "Controls whether header fields with invalid names should be ignored. Valid names are composed of English letters, digits, hyphens, and possibly underscores (as controlled by the `underscores_in_headers` directive).",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#ignore_invalid_headers"
     },
     {
@@ -5761,7 +6441,7 @@
         "server"
       ],
       "default": "IMAP4 IMAP4rev1 UIDPLUS",
-      "description": "Sets the IMAP protocol extensions list that is passed to the client in response to the `CAPABILITY` command. The authentication methods specified in the directive and STARTTLS are automatically added to this list depending on the directive value.",
+      "description": "Sets the IMAP protocol extensions list that is passed to the client in response to the `CAPABILITY` command. The authentication methods specified in the `imap_auth` directive and STARTTLS are automatically added to this list depending on the `starttls` directive value.",
       "docUrl": "https://nginx.org/en/docs/mail/ngx_mail_imap_module.html#imap_capabilities"
     },
     {
@@ -5840,7 +6520,7 @@
         "location"
       ],
       "default": null,
-      "description": "Specifies that a given location can only be used for internal requests. For external requests, the client error is returned. Internal requests are the following: requests redirected by the , , , , and directives; requests redirected by the X-Accel-Redirect response header field from an upstream server; subrequests formed by the “include virtual” command of the ngx_http_ssi_module module, by the ngx_http_addition_module module directives, and by and directives; requests changed by the directive.",
+      "description": "Specifies that a given location can only be used for internal requests. For external requests, the client error is returned. Internal requests are the following: requests redirected by the `error_page`, `index`, `internal_redirect`, `random_index`, and `try_files` directives; requests redirected by the X-Accel-Redirect response header field from an upstream server; subrequests formed by the “include virtual” command of the ngx_http_ssi_module module, by the ngx_http_addition_module module directives, and by `auth_request` and `mirror` directives; requests changed by the `rewrite` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#internal"
     },
     {
@@ -6994,7 +7674,7 @@
         "location"
       ],
       "default": null,
-      "description": "Declares a writable variable. The value can contain text, variables, and their combination. The variable is not overwritten after a redirect unlike variables created with the directive.",
+      "description": "Declares a writable variable. The value can contain text, variables, and their combination. The variable is not overwritten after a redirect unlike variables created with the `set` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_js_module.html#js_var"
     },
     {
@@ -7810,7 +8490,7 @@
         "http"
       ],
       "default": null,
-      "description": "This directive was made obsolete in version 1.1.8 and was removed in version 1.7.6. An equivalent directive with a changed syntax should be used instead: `limit_conn_zone` $variable `zone`=name:size;",
+      "description": "This directive was made obsolete in version 1.1.8 and was removed in version 1.7.6. An equivalent `limit_conn_zone` directive with a changed syntax should be used instead: `limit_conn_zone` $variable `zone`=name:size;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html#limit_zone"
     },
     {
@@ -7852,7 +8532,7 @@
         "location"
       ],
       "default": "30s",
-      "description": "When is in effect, this directive specifies the maximum time during which nginx will process (read and ignore) additional data coming from a client. After that, the connection will be closed, even if there will be more data.",
+      "description": "When `lingering_close` is in effect, this directive specifies the maximum time during which nginx will process (read and ignore) additional data coming from a client. After that, the connection will be closed, even if there will be more data.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#lingering_time"
     },
     {
@@ -7873,7 +8553,7 @@
         "location"
       ],
       "default": "5s",
-      "description": "When is in effect, this directive specifies the maximum waiting time for more client data to arrive. If data are not received during this time, the connection is closed. Otherwise, the data are read and ignored, and nginx starts waiting for more data again. The “wait-read-ignore” cycle is repeated, but no longer than specified by the directive.",
+      "description": "When `lingering_close` is in effect, this directive specifies the maximum waiting time for more client data to arrive. If data are not received during this time, the connection is closed. Otherwise, the data are read and ignored, and nginx starts waiting for more data again. The “wait-read-ignore” cycle is repeated, but no longer than specified by the `lingering_time` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#lingering_timeout"
     },
     {
@@ -8008,7 +8688,7 @@
         "main"
       ],
       "default": "logs/nginx.lock",
-      "description": "nginx uses the locking mechanism to implement and serialize access to shared memory. On most systems the locks are implemented using atomic operations, and this directive is ignored. On other systems the “lock file” mechanism is used. This directive specifies a prefix for the names of lock files.",
+      "description": "nginx uses the locking mechanism to implement `accept_mutex` and serialize access to shared memory. On most systems the locks are implemented using atomic operations, and this directive is ignored. On other systems the “lock file” mechanism is used. This directive specifies a prefix for the names of lock files.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#lock_file"
     },
     {
@@ -8067,7 +8747,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Enables or disables logging of errors about not found files into .",
+      "description": "Enables or disables logging of errors about not found files into `error_log`.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#log_not_found"
     },
     {
@@ -8088,7 +8768,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables logging of subrequests into .",
+      "description": "Enables or disables logging of subrequests into `access_log`.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#log_subrequest"
     },
     {
@@ -8202,7 +8882,7 @@
         "http"
       ],
       "default": "32|64|128",
-      "description": "Sets the bucket size for the variables hash tables. Default value depends on the processor’s cache line size. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the bucket size for the `map` variables hash tables. Default value depends on the processor’s cache line size. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_map_module.html#map_hash_bucket_size"
     },
     {
@@ -8221,7 +8901,7 @@
         "stream"
       ],
       "default": "32|64|128",
-      "description": "Sets the bucket size for the variables hash tables. Default value depends on the processor’s cache line size. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the bucket size for the `map` variables hash tables. Default value depends on the processor’s cache line size. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_map_module.html#map_hash_bucket_size"
     },
     {
@@ -8240,7 +8920,7 @@
         "http"
       ],
       "default": "2048",
-      "description": "Sets the maximum size of the variables hash tables. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the maximum size of the `map` variables hash tables. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_map_module.html#map_hash_max_size"
     },
     {
@@ -8259,7 +8939,7 @@
         "stream"
       ],
       "default": "2048",
-      "description": "Sets the maximum size of the variables hash tables. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the maximum size of the `map` variables hash tables. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_map_module.html#map_hash_max_size"
     },
     {
@@ -8751,7 +9431,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the client request body is mirrored. When enabled, the client request body will be read prior to creating mirror subrequests. In this case, unbuffered client request body proxying set by the , , , and directives will be disabled. location / { mirror /mirror; mirror_request_body off; proxy_pass http://backend; } location = /mirror { internal; proxy_pass http://log_backend; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; proxy_set_header X-Original-URI $request_uri; }",
+      "description": "Indicates whether the client request body is mirrored. When enabled, the client request body will be read prior to creating mirror subrequests. In this case, unbuffered client request body proxying set by the `proxy_request_buffering`, `fastcgi_request_buffering`, `scgi_request_buffering`, and `uwsgi_request_buffering` directives will be disabled. location / { mirror /mirror; mirror_request_body off; proxy_pass http://backend; } location = /mirror { internal; proxy_pass http://log_backend; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; proxy_set_header X-Original-URI $request_uri; }",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_mirror_module.html#mirror_request_body"
     },
     {
@@ -9001,7 +9681,7 @@
         "server"
       ],
       "default": "4k|8k",
-      "description": "This directive is obsolete since version 1.25.1. The directive should be used instead.",
+      "description": "This directive is obsolete since version 1.25.1. The `mqtt_buffers` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_mqtt_filter_module.html#mqtt_rewrite_buffer_size"
     },
     {
@@ -9081,7 +9761,7 @@
         "events"
       ],
       "default": "off",
-      "description": "If `multi_accept` is disabled, a worker process will accept one new connection at a time. Otherwise, a worker process will accept all new connections at a time. The directive is ignored if connection processing method is used, because it reports the number of new connections waiting to be accepted.",
+      "description": "If `multi_accept` is disabled, a worker process will accept one new connection at a time. Otherwise, a worker process will accept all new connections at a time. The directive is ignored if `kqueue` connection processing method is used, because it reports the number of new connections waiting to be accepted.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#multi_accept"
     },
     {
@@ -9157,7 +9837,7 @@
         "http"
       ],
       "default": null,
-      "description": "Defines an OpenID Provider for use with the directive.",
+      "description": "Defines an OpenID Provider for use with the `auth_oidc` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_oidc_module.html#oidc_provider"
     },
     {
@@ -9183,7 +9863,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Configures a cache that can store: open file descriptors, their sizes and modification times; information on existence of directories; file lookup errors, such as “file not found”, “no read permission”, and so on. Caching of errors should be enabled separately by the directive.",
+      "description": "Configures a cache that can store: open file descriptors, their sizes and modification times; information on existence of directories; file lookup errors, such as “file not found”, “no read permission”, and so on. Caching of errors should be enabled separately by the `open_file_cache_errors` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache"
     },
     {
@@ -9204,7 +9884,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables caching of file lookup errors by .",
+      "description": "Enables or disables caching of file lookup errors by `open_file_cache`.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache_errors"
     },
     {
@@ -9225,7 +9905,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables to use kernel events to validate elements. This directive works with the method only. Note that only NetBSD 2.0+ and FreeBSD 6.0+ support events for arbitrary file system types. Other operating systems support events only for essential file systems such as UFS or FFS.",
+      "description": "Enables to use kernel events to validate `open_file_cache` elements. This directive works with the `kqueue` method only. Note that only NetBSD 2.0+ and FreeBSD 6.0+ support events for arbitrary file system types. Other operating systems support events only for essential file systems such as UFS or FFS.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache_events"
     },
     {
@@ -9246,7 +9926,7 @@
         "location"
       ],
       "default": "1",
-      "description": "Sets the minimum number of file accesses during the period configured by the `inactive` parameter of the directive, required for a file descriptor to remain open in the cache.",
+      "description": "Sets the minimum number of file accesses during the period configured by the `inactive` parameter of the `open_file_cache` directive, required for a file descriptor to remain open in the cache.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache_min_uses"
     },
     {
@@ -9267,7 +9947,7 @@
         "location"
       ],
       "default": "60s",
-      "description": "Sets a time after which elements should be validated. is enabled, open file descriptors are checked only once, and then updated right after they get changed. -->",
+      "description": "Sets a time after which `open_file_cache` elements should be validated.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache_valid"
     },
     {
@@ -9459,7 +10139,7 @@
         "location"
       ],
       "default": "ignore",
-      "description": "Specifies how to propagate traceparent/tracestate headers: `extract` uses an existing trace context from the request, so that the identifiers of a trace and the parent span are inherited from the incoming request. `inject` adds a new context to the request, overwriting existing headers, if any. `propagate` updates the existing context (combines and ). `ignore` skips context headers processing.",
+      "description": "Specifies how to propagate traceparent/tracestate headers: `extract` uses an existing trace context from the request, so that the identifiers of a trace and the parent span are inherited from the incoming request. `inject` adds a new context to the request, overwriting existing headers, if any. `propagate` updates the existing context (combines `extract` and `inject`). `ignore` skips context headers processing.",
       "docUrl": "https://nginx.org/en/docs/ngx_otel_module.html#otel_trace_context"
     },
     {
@@ -9695,7 +10375,7 @@
         "server"
       ],
       "default": "TOP USER UIDL",
-      "description": "Sets the POP3 protocol extensions list that is passed to the client in response to the `CAPA` command. The authentication methods specified in the directive (SASL extension) and STLS are automatically added to this list depending on the directive value.",
+      "description": "Sets the POP3 protocol extensions list that is passed to the client in response to the `CAPA` command. The authentication methods specified in the `pop3_auth` directive (SASL extension) and STLS are automatically added to this list depending on the `starttls` directive value.",
       "docUrl": "https://nginx.org/en/docs/mail/ngx_mail_pop3_module.html#pop3_capabilities"
     },
     {
@@ -10119,7 +10799,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "When buffering of responses from the proxied server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the and directives.",
+      "description": "When buffering of responses from the proxied server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the `proxy_buffer_size` and `proxy_buffers` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_busy_buffers_size"
     },
     {
@@ -10182,7 +10862,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: proxy_cache_bypass $cookie_nocache $arg_nocache$arg_comment; proxy_cache_bypass $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: proxy_cache_bypass $cookie_nocache $arg_nocache$arg_comment; proxy_cache_bypass $http_pragma $http_authorization; Can be used along with the `proxy_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_bypass"
     },
     {
@@ -10245,7 +10925,7 @@
         "location"
       ],
       "default": "off",
-      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the directive by passing a request to a proxied server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the directive.",
+      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the `proxy_cache_key` directive by passing a request to a proxied server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the `proxy_cache_lock_timeout` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock"
     },
     {
@@ -10287,7 +10967,7 @@
         "location"
       ],
       "default": "5s",
-      "description": "Sets a timeout for . When the time expires, the request will be passed to the proxied server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
+      "description": "Sets a timeout for `proxy_cache_lock`. When the time expires, the request will be passed to the proxied server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock_timeout"
     },
     {
@@ -10329,7 +11009,7 @@
         "location"
       ],
       "default": "GET HEAD",
-      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the directive.",
+      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the `proxy_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_methods"
     },
     {
@@ -10432,7 +11112,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines in which cases a stale cached response can be used during communication with the proxied server. The directive’s parameters match the parameters of the directive.",
+      "description": "Determines in which cases a stale cached response can be used during communication with the proxied server. The directive’s parameters match the parameters of the `proxy_next_upstream` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_use_stale"
     },
     {
@@ -10649,7 +11329,7 @@
         "location"
       ],
       "default": "64",
-      "description": "Sets the bucket size for hash tables used by the and directives. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the bucket size for hash tables used by the `proxy_hide_header` and `proxy_set_header` directives. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_bucket_size"
     },
     {
@@ -10670,7 +11350,7 @@
         "location"
       ],
       "default": "512",
-      "description": "Sets the maximum size of hash tables used by the and directives. The details of setting up hash tables are provided in a separate document.",
+      "description": "Sets the maximum size of hash tables used by the `proxy_hide_header` and `proxy_set_header` directives. The details of setting up hash tables are provided in a separate document.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_max_size"
     },
     {
@@ -10691,7 +11371,7 @@
         "location"
       ],
       "default": null,
-      "description": "By default, nginx does not pass the header fields Date, Server, X-Pad, and X-Accel-... from the response of a proxied server to a client. The `proxy_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the directive can be used.",
+      "description": "By default, nginx does not pass the header fields Date, Server, X-Pad, and X-Accel-... from the response of a proxied server to a client. The `proxy_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the `proxy_pass_header` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header"
     },
     {
@@ -10712,7 +11392,7 @@
         "location"
       ],
       "default": "1.1",
-      "description": "Sets the HTTP protocol version for proxying. Since 1.29.7, version 1.1 is used by default. Before 1.29.7, version 1.0 was used by default. Version 1.1 or 2 (1.29.4) is recommended for use with connections and NTLM authentication. Version 2 requires the ngx_http_v2_module module.",
+      "description": "Sets the HTTP protocol version for proxying. Since 1.29.7, version 1.1 is used by default. Before 1.29.7, version 1.0 was used by default. Version 1.1 or 2 (1.29.4) is recommended for use with `keepalive` connections and NTLM authentication. Version 2 requires the ngx_http_v2_module module.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_http_version"
     },
     {
@@ -10775,7 +11455,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines whether proxied responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the directive.",
+      "description": "Determines whether proxied responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the `error_page` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_intercept_errors"
     },
     {
@@ -10817,7 +11497,7 @@
         "location"
       ],
       "default": "1024m",
-      "description": "When buffering of responses from the proxied server is enabled, and the whole response does not fit into the buffers set by the and directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the directive.",
+      "description": "When buffering of responses from the proxied server is enabled, and the whole response does not fit into the buffers set by the `proxy_buffer_size` and `proxy_buffers` directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the `proxy_temp_file_write_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_max_temp_file_size"
     },
     {
@@ -10982,7 +11662,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: proxy_no_cache $cookie_nocache $arg_nocache$arg_comment; proxy_no_cache $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: proxy_no_cache $cookie_nocache $arg_nocache$arg_comment; proxy_no_cache $http_pragma $http_authorization; Can be used along with the `proxy_cache_bypass` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_no_cache"
     },
     {
@@ -11084,7 +11764,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the original request body is passed to the proxied server. location /x-accel-redirect-here/ { proxy_method GET; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; proxy_pass ... } See also the and directives.",
+      "description": "Indicates whether the original request body is passed to the proxied server. location /x-accel-redirect-here/ { proxy_method GET; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; proxy_pass ... } See also the `proxy_set_header` and `proxy_pass_request_headers` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_body"
     },
     {
@@ -11105,7 +11785,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the header fields of the original request are passed to the proxied server. location /x-accel-redirect-here/ { proxy_method GET; proxy_pass_request_headers off; proxy_pass_request_body off; proxy_pass ... } See also the and directives.",
+      "description": "Indicates whether the header fields of the original request are passed to the proxied server. location /x-accel-redirect-here/ { proxy_method GET; proxy_pass_request_headers off; proxy_pass_request_body off; proxy_pass ... } See also the `proxy_set_header` and `proxy_pass_request_body` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_headers"
     },
     {
@@ -11360,7 +12040,7 @@
         "location"
       ],
       "default": "0",
-      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a proxied server by using either NOTE_LOWAT flag of the method, or the SO_SNDLOWAT socket option, with the specified size.",
+      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a proxied server by using either NOTE_LOWAT flag of the `kqueue` method, or the SO_SNDLOWAT socket option, with the specified size.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_send_lowat"
     },
     {
@@ -12272,7 +12952,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives or . The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: proxy_store /data/www$original_uri;",
+      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives `alias` or `root`. The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: proxy_store /data/www$original_uri;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_store"
     },
     {
@@ -12314,7 +12994,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the proxied server to temporary files is enabled. By default, size is limited by two buffers set by the and directives. The maximum size of a temporary file is set by the directive.",
+      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the proxied server to temporary files is enabled. By default, size is limited by two buffers set by the `proxy_buffer_size` and `proxy_buffers` directives. The maximum size of a temporary file is set by the `proxy_max_temp_file_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_temp_file_write_size"
     },
     {
@@ -12472,7 +13152,7 @@
         "main"
       ],
       "default": "off",
-      "description": "Enables routing of QUIC packets using eBPF. When enabled, this allows supporting QUIC connection migration.",
+      "description": "Enables routing of QUIC packets using eBPF. When enabled, this allows supporting QUIC connection migration. Since 1.31.7, this also allows established QUIC connections to be preserved during configuration reloads and during live upgrade.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_v3_module.html#quic_bpf"
     },
     {
@@ -12652,7 +13332,7 @@
         "location"
       ],
       "default": "off",
-      "description": "If recursive search is disabled, the original client address that matches one of the trusted addresses is replaced by the last address sent in the request header field defined by the directive. If recursive search is enabled, the original client address that matches one of the trusted addresses is replaced by the last non-trusted address sent in the request header field.",
+      "description": "If recursive search is disabled, the original client address that matches one of the trusted addresses is replaced by the last address sent in the request header field defined by the `real_ip_header` directive. If recursive search is enabled, the original client address that matches one of the trusted addresses is replaced by the last non-trusted address sent in the request header field.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_realip_module.html#real_ip_recursive"
     },
     {
@@ -12673,7 +13353,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables doing several redirects using the directive. The number of such redirects is limited.",
+      "description": "Enables or disables doing several redirects using the `error_page` directive. The number of such redirects is limited.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#recursive_error_pages"
     },
     {
@@ -13088,7 +13768,7 @@
         "if"
       ],
       "default": "off",
-      "description": "Enables or disables logging of `ngx_http_rewrite_module` module directives processing results into the at the `notice` level.",
+      "description": "Enables or disables logging of `ngx_http_rewrite_module` module directives processing results into the `error_log` at the `notice` level.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#rewrite_log"
     },
     {
@@ -13278,7 +13958,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "When buffering of responses from the SCGI server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the and directives.",
+      "description": "When buffering of responses from the SCGI server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the `scgi_buffer_size` and `scgi_buffers` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_busy_buffers_size"
     },
     {
@@ -13341,7 +14021,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: scgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; scgi_cache_bypass $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: scgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; scgi_cache_bypass $http_pragma $http_authorization; Can be used along with the `scgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_cache_bypass"
     },
     {
@@ -13383,7 +14063,7 @@
         "location"
       ],
       "default": "off",
-      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the directive by passing a request to an SCGI server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the directive.",
+      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the `scgi_cache_key` directive by passing a request to an SCGI server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the `scgi_cache_lock_timeout` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_cache_lock"
     },
     {
@@ -13425,7 +14105,7 @@
         "location"
       ],
       "default": "5s",
-      "description": "Sets a timeout for . When the time expires, the request will be passed to the SCGI server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
+      "description": "Sets a timeout for `scgi_cache_lock`. When the time expires, the request will be passed to the SCGI server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_cache_lock_timeout"
     },
     {
@@ -13467,7 +14147,7 @@
         "location"
       ],
       "default": "GET HEAD",
-      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the directive.",
+      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the `scgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_cache_methods"
     },
     {
@@ -13570,7 +14250,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the SCGI server. The directive’s parameters match the parameters of the directive.",
+      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the SCGI server. The directive’s parameters match the parameters of the `scgi_next_upstream` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_cache_use_stale"
     },
     {
@@ -13654,7 +14334,7 @@
         "location"
       ],
       "default": null,
-      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of an SCGI server to a client. The `scgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the directive can be used.",
+      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of an SCGI server to a client. The `scgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the `scgi_pass_header` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_hide_header"
     },
     {
@@ -13717,7 +14397,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines whether an SCGI server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the directive.",
+      "description": "Determines whether an SCGI server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the `error_page` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_intercept_errors"
     },
     {
@@ -13759,7 +14439,7 @@
         "location"
       ],
       "default": "1024m",
-      "description": "When buffering of responses from the SCGI server is enabled, and the whole response does not fit into the buffers set by the and directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the directive.",
+      "description": "When buffering of responses from the SCGI server is enabled, and the whole response does not fit into the buffers set by the `scgi_buffer_size` and `scgi_buffers` directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the `scgi_temp_file_write_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_max_temp_file_size"
     },
     {
@@ -13843,7 +14523,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: scgi_no_cache $cookie_nocache $arg_nocache$arg_comment; scgi_no_cache $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: scgi_no_cache $cookie_nocache $arg_nocache$arg_comment; scgi_no_cache $http_pragma $http_authorization; Can be used along with the `scgi_cache_bypass` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_no_cache"
     },
     {
@@ -13926,7 +14606,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the original request body is passed to the SCGI server. See also the directive.",
+      "description": "Indicates whether the original request body is passed to the SCGI server. See also the `scgi_pass_request_headers` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_pass_request_body"
     },
     {
@@ -13947,7 +14627,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the header fields of the original request are passed to the SCGI server. See also the directive.",
+      "description": "Indicates whether the header fields of the original request are passed to the SCGI server. See also the `scgi_pass_request_body` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_pass_request_headers"
     },
     {
@@ -14115,7 +14795,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives or . The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: scgi_store /data/www$original_uri;",
+      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives `alias` or `root`. The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: scgi_store /data/www$original_uri;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_store"
     },
     {
@@ -14157,7 +14837,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the SCGI server to temporary files is enabled. By default, size is limited by two buffers set by the and directives. The maximum size of a temporary file is set by the directive.",
+      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the SCGI server to temporary files is enabled. By default, size is limited by two buffers set by the `scgi_buffer_size` and `scgi_buffers` directives. The maximum size of a temporary file is set by the `scgi_max_temp_file_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_temp_file_write_size"
     },
     {
@@ -14279,7 +14959,7 @@
         "location"
       ],
       "default": "0",
-      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on client sockets by using either NOTE_LOWAT flag of the method or the SO_SNDLOWAT socket option. In both cases the specified size is used.",
+      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on client sockets by using either NOTE_LOWAT flag of the `kqueue` method or the SO_SNDLOWAT socket option. In both cases the specified size is used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#send_lowat"
     },
     {
@@ -14362,7 +15042,7 @@
         "http"
       ],
       "default": null,
-      "description": "Sets configuration for a virtual server. There is no clear separation between IP-based (based on the IP address) and name-based (based on the Host request header field) virtual servers. Instead, the directives describe all addresses and ports that should accept connections for the server, and the directive lists all server names. Example configurations are provided in the “” document.",
+      "description": "Sets configuration for a virtual server. There is no clear separation between IP-based (based on the IP address) and name-based (based on the Host request header field) virtual servers. Instead, the `listen` directives describe all addresses and ports that should accept connections for the server, and the `server_name` directive lists all server names. Example configurations are provided in the “request_processing” document.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#server"
     },
     {
@@ -14419,7 +15099,7 @@
         "stream"
       ],
       "default": null,
-      "description": "Sets the configuration for a virtual server. There is no clear separation between IP-based (based on the IP address) and name-based (based on the TLS Server Name Indication extension (SNI, RFC 6066)) (1.25.5) virtual servers. Instead, the directives describe all addresses and ports that should accept connections for the server, and the directive lists all server names.",
+      "description": "Sets the configuration for a virtual server. There is no clear separation between IP-based (based on the IP address) and name-based (based on the TLS Server Name Indication extension (SNI, RFC 6066)) (1.25.5) virtual servers. Instead, the `listen` directives describe all addresses and ports that should accept connections for the server, and the `server_name` directive lists all server names.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_core_module.html#server"
     },
     {
@@ -14517,7 +15197,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables the use of the primary server name, specified by the directive, in absolute redirects issued by nginx. When the use of the primary server name is disabled, the name from the Host request header field is used. If this field is not present, the IP address of the server is used.",
+      "description": "Enables or disables the use of the primary server name, specified by the `server_name` directive, in absolute redirects issued by nginx. When the use of the primary server name is disabled, the name from the Host request header field is used. If this field is not present, the IP address of the server is used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#server_name_in_redirect"
     },
     {
@@ -14694,6 +15374,25 @@
       "default": null,
       "description": "Specifies a custom key-value database that stores session data. By default, an 8-megabyte key-value database named `oidc_default_store_<provider name>` is created automatically. A separate key-value database should be configured for each Provider to prevent session reuse across providers.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_oidc_module.html#session_store"
+    },
+    {
+      "name": "session_sync_leeway",
+      "family": "http",
+      "module": "Module ngx_http_oidc_module",
+      "syntaxes": [
+        {
+          "text": "time",
+          "block": false,
+          "line": "session_sync_leeway time;"
+        }
+      ],
+      "block": false,
+      "contexts": [
+        "oidc_provider"
+      ],
+      "default": "0",
+      "description": "Sets the maximum wait time for a session to appear in the key-value zone if a request contains a session cookie but the corresponding session is not found. This allows for session synchronization delays between cluster nodes.",
+      "docUrl": "https://nginx.org/en/docs/http/ngx_http_oidc_module.html#session_sync_leeway"
     },
     {
       "name": "session_timeout",
@@ -14873,7 +15572,7 @@
         "server"
       ],
       "default": null,
-      "description": "Sets the SMTP protocol extensions list that is passed to the client in response to the `EHLO` command. The authentication methods specified in the directive and STARTTLS are automatically added to this list depending on the directive value.",
+      "description": "Sets the SMTP protocol extensions list that is passed to the client in response to the `EHLO` command. The authentication methods specified in the `smtp_auth` directive and STARTTLS are automatically added to this list depending on the `starttls` directive value.",
       "docUrl": "https://nginx.org/en/docs/mail/ngx_mail_smtp_module.html#smtp_capabilities"
     },
     {
@@ -14935,7 +15634,7 @@
         "if in location"
       ],
       "default": null,
-      "description": "Defines the source charset of a response. If this charset is different from the charset specified in the directive, a conversion is performed.",
+      "description": "Defines the source charset of a response. If this charset is different from the charset specified in the `charset` directive, a conversion is performed.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_charset_module.html#source_charset"
     },
     {
@@ -15037,7 +15736,7 @@
         "location"
       ],
       "default": "1k",
-      "description": "Sets the minimum size for parts of a response stored on disk, starting from which it makes sense to send them using .",
+      "description": "Sets the minimum size for parts of a response stored on disk, starting from which it makes sense to send them using `sendfile`.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssi_module.html#ssi_min_file_chunk"
     },
     {
@@ -15120,7 +15819,7 @@
         "server"
       ],
       "default": "off",
-      "description": "This directive was made obsolete in version 1.15.0 and was removed in version 1.25.1. The `ssl` parameter of the directive should be used instead.",
+      "description": "This directive was made obsolete in version 1.15.0 and was removed in version 1.25.1. The `ssl` parameter of the `listen` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl"
     },
     {
@@ -15140,7 +15839,7 @@
         "server"
       ],
       "default": "off",
-      "description": "This directive was made obsolete in version 1.15.0 and was removed in version 1.25.1. The `ssl` parameter of the directive should be used instead.",
+      "description": "This directive was made obsolete in version 1.15.0 and was removed in version 1.25.1. The `ssl` parameter of the `listen` directive should be used instead.",
       "docUrl": "https://nginx.org/en/docs/mail/ngx_mail_ssl_module.html#ssl"
     },
     {
@@ -15490,7 +16189,7 @@
         "server"
       ],
       "default": null,
-      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if is enabled.",
+      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if `ssl_stapling` is enabled.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_client_certificate"
     },
     {
@@ -15530,7 +16229,7 @@
         "server"
       ],
       "default": null,
-      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if is enabled.",
+      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if `ssl_stapling` is enabled.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_ssl_module.html#ssl_client_certificate"
     },
     {
@@ -16306,7 +17005,7 @@
         "server"
       ],
       "default": "off",
-      "description": "If enabled, SSL handshakes in the block will be rejected.",
+      "description": "If enabled, SSL handshakes in the `server` block will be rejected.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_reject_handshake"
     },
     {
@@ -16326,7 +17025,7 @@
         "server"
       ],
       "default": "off",
-      "description": "If enabled, SSL handshakes in the block will be rejected.",
+      "description": "If enabled, SSL handshakes in the `server` block will be rejected.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_ssl_module.html#ssl_reject_handshake"
     },
     {
@@ -16346,7 +17045,7 @@
         "server"
       ],
       "default": "none",
-      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several virtual servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the directive.",
+      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several virtual servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the `ssl_session_ticket_key` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_session_cache"
     },
     {
@@ -16366,7 +17065,7 @@
         "server"
       ],
       "default": "none",
-      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the directive.",
+      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the `ssl_session_ticket_key` directive.",
       "docUrl": "https://nginx.org/en/docs/mail/ngx_mail_ssl_module.html#ssl_session_cache"
     },
     {
@@ -16386,7 +17085,7 @@
         "server"
       ],
       "default": "none",
-      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several virtual servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the directive.",
+      "description": "Sets the types and sizes of caches that store session parameters. A cache can be of any of the following types: `off` the use of a session cache is strictly prohibited: nginx explicitly tells a client that sessions may not be reused. `none` the use of a session cache is gently disallowed: nginx tells a client that sessions may be reused, but does not actually store session parameters in the cache. `builtin` a cache built in OpenSSL; used by one worker process only. The cache size is specified in sessions. If size is not given, it is equal to 20480 sessions. Use of the built-in cache can cause memory fragmentation. `shared` a cache shared between all worker processes. The cache size is specified in bytes; one megabyte can store about 4000 sessions. Each shared cache should have an arbitrary name. A cache with the same name can be used in several virtual servers. It is also used to automatically generate, store, and periodically rotate TLS session ticket keys (1.23.2) unless configured explicitly using the `ssl_session_ticket_key` directive.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_ssl_module.html#ssl_session_cache"
     },
     {
@@ -16803,7 +17502,7 @@
         "server"
       ],
       "default": null,
-      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if is enabled.",
+      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if `ssl_stapling` is enabled.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_trusted_certificate"
     },
     {
@@ -16843,7 +17542,7 @@
         "server"
       ],
       "default": null,
-      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if is enabled.",
+      "description": "Specifies a file with trusted CA certificates in the PEM format used to verify client certificates and OCSP responses if `ssl_stapling` is enabled.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_ssl_module.html#ssl_trusted_certificate"
     },
     {
@@ -17020,7 +17719,7 @@
         "events"
       ],
       "default": "1000ms",
-      "description": "Allows overriding the default time threshold for the event loop iteration before a stall is reported. By default, a stall is reported when an event loop iteration exceeds 1000ms. If the directive is enabled, the time threshold will be ignored.",
+      "description": "Allows overriding the default time threshold for the event loop iteration before a stall is reported. By default, a stall is reported when an event loop iteration exceeds 1000ms. If the `timer_resolution` directive is enabled, the time threshold will be ignored.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#stall_threshold"
     },
     {
@@ -17436,7 +18135,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables or disables the use of the TCP_NOPUSH socket option on FreeBSD or the TCP_CORK socket option on Linux. The options are enabled only when is used. Enabling the option allows sending the response header and the beginning of a file in one packet, on Linux and FreeBSD 4.*; sending a file in full packets.",
+      "description": "Enables or disables the use of the TCP_NOPUSH socket option on FreeBSD or the TCP_CORK socket option on Linux. The options are enabled only when `sendfile` is used. Enabling the option allows sending the response header and the beginning of a file in one packet, on Linux and FreeBSD 4.*; sending a file in full packets.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#tcp_nopush"
     },
     {
@@ -17519,7 +18218,7 @@
         "location"
       ],
       "default": null,
-      "description": "Checks the existence of files in the specified order and uses the first found file for request processing; the processing is performed in the current context. The path to a file is constructed from the file parameter according to the and directives. It is possible to check directory’s existence by specifying a slash at the end of a name, e.g. “`$uri/`”. If none of the files were found, an internal redirect to the uri specified in the last parameter is made. For example: location /images/ { try_files $uri /images/default.gif; } location = /images/default.gif { expires 30s; } The last parameter can also point to a named location, as shown in examples below. Starting from version 0.7.51, the last parameter can also be a code: location / { try_files $uri $uri/index.html $uri.html =404; }",
+      "description": "Checks the existence of files in the specified order and uses the first found file for request processing; the processing is performed in the current context. The path to a file is constructed from the file parameter according to the `root` and `alias` directives. It is possible to check directory’s existence by specifying a slash at the end of a name, e.g. “`$uri/`”. If none of the files were found, an internal redirect to the uri specified in the last parameter is made. For example: location /images/ { try_files $uri /images/default.gif; } location = /images/default.gif { expires 30s; } The last parameter can also point to a named location, as shown in examples below. Starting from version 0.7.51, the last parameter can also be a code: location / { try_files $uri $uri/index.html $uri.html =404; }",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files"
     },
     {
@@ -17582,7 +18281,7 @@
         "location"
       ],
       "default": "off",
-      "description": "When enabled, makes the operation at each connection attempt: geo $upstream_last_addr $bind_addr { volatile; 10.0.0.0/24 10.0.0.1; 192.168.0.0/24 192.168.0.1; } tunnel_bind $bind_addr; tunnel_bind_dynamic on;",
+      "description": "When enabled, makes the `tunnel_bind` operation at each connection attempt: geo $upstream_last_addr $bind_addr { volatile; 10.0.0.0/24 10.0.0.1; 192.168.0.0/24 192.168.0.1; } tunnel_bind $bind_addr; tunnel_bind_dynamic on;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_tunnel_module.html#tunnel_bind_dynamic"
     },
     {
@@ -17750,7 +18449,7 @@
         "location"
       ],
       "default": "0",
-      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a backend server by using either NOTE_LOWAT flag of the method, or the SO_SNDLOWAT socket option, with the specified size.",
+      "description": "If the directive is set to a non-zero value, nginx will try to minimize the number of send operations on outgoing connections to a backend server by using either NOTE_LOWAT flag of the `kqueue` method, or the SO_SNDLOWAT socket option, with the specified size.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_tunnel_module.html#tunnel_send_lowat"
     },
     {
@@ -17917,7 +18616,7 @@
         "server"
       ],
       "default": "off",
-      "description": "Enables or disables the use of underscores in client request header fields. When the use of underscores is disabled, request header fields whose names contain underscores are marked as invalid and become subject to the directive.",
+      "description": "Enables or disables the use of underscores in client request header fields. When the use of underscores is disabled, request header fields whose names contain underscores are marked as invalid and become subject to the `ignore_invalid_headers` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_core_module.html#underscores_in_headers"
     },
     {
@@ -18177,7 +18876,7 @@
         "location"
       ],
       "default": "off",
-      "description": "If the parameter is not `off`, enables the cookie marking mechanism and sets the character used as a mark. This mechanism is used to add or change and/or a cookie expiration time while preserving the client identifier. A mark can be any letter of the English alphabet (case-sensitive), digit, or the “`=`” character.",
+      "description": "If the parameter is not `off`, enables the cookie marking mechanism and sets the character used as a mark. This mechanism is used to add or change `userid_p3p` and/or a cookie expiration time while preserving the client identifier. A mark can be any letter of the English alphabet (case-sensitive), digit, or the “`=`” character.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_userid_module.html#userid_mark"
     },
     {
@@ -18427,7 +19126,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "When buffering of responses from the uwsgi server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the and directives.",
+      "description": "When buffering of responses from the uwsgi server is enabled, limits the total size of buffers that can be busy sending a response to the client while the response is not yet fully read. In the meantime, the rest of the buffers can be used for reading the response and, if needed, buffering part of the response to a temporary file. By default, size is limited by the size of two buffers set by the `uwsgi_buffer_size` and `uwsgi_buffers` directives.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_busy_buffers_size"
     },
     {
@@ -18490,7 +19189,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: uwsgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; uwsgi_cache_bypass $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be taken from the cache: uwsgi_cache_bypass $cookie_nocache $arg_nocache$arg_comment; uwsgi_cache_bypass $http_pragma $http_authorization; Can be used along with the `uwsgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_cache_bypass"
     },
     {
@@ -18532,7 +19231,7 @@
         "location"
       ],
       "default": "off",
-      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the directive by passing a request to a uwsgi server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the directive.",
+      "description": "When enabled, only one request at a time will be allowed to populate a new cache element identified according to the `uwsgi_cache_key` directive by passing a request to a uwsgi server. Other requests of the same cache element will either wait for a response to appear in the cache or the cache lock for this element to be released, up to the time set by the `uwsgi_cache_lock_timeout` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_cache_lock"
     },
     {
@@ -18574,7 +19273,7 @@
         "location"
       ],
       "default": "5s",
-      "description": "Sets a timeout for . When the time expires, the request will be passed to the uwsgi server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
+      "description": "Sets a timeout for `uwsgi_cache_lock`. When the time expires, the request will be passed to the uwsgi server, however, the response will not be cached. Before 1.7.8, the response could be cached.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_cache_lock_timeout"
     },
     {
@@ -18616,7 +19315,7 @@
         "location"
       ],
       "default": "GET HEAD",
-      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the directive.",
+      "description": "If the client request method is listed in this directive then the response will be cached. “`GET`” and “`HEAD`” methods are always added to the list, though it is recommended to specify them explicitly. See also the `uwsgi_no_cache` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_cache_methods"
     },
     {
@@ -18719,7 +19418,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the uwsgi server. The directive’s parameters match the parameters of the directive.",
+      "description": "Determines in which cases a stale cached response can be used when an error occurs during communication with the uwsgi server. The directive’s parameters match the parameters of the `uwsgi_next_upstream` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_cache_use_stale"
     },
     {
@@ -18803,7 +19502,7 @@
         "location"
       ],
       "default": null,
-      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of a uwsgi server to a client. The `uwsgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the directive can be used.",
+      "description": "By default, nginx does not pass the header fields Status and X-Accel-... from the response of a uwsgi server to a client. The `uwsgi_hide_header` directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the `uwsgi_pass_header` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_hide_header"
     },
     {
@@ -18866,7 +19565,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Determines whether a uwsgi server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the directive.",
+      "description": "Determines whether a uwsgi server responses with codes greater than or equal to 300 should be passed to a client or be intercepted and redirected to nginx for processing with the `error_page` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_intercept_errors"
     },
     {
@@ -18908,7 +19607,7 @@
         "location"
       ],
       "default": "1024m",
-      "description": "When buffering of responses from the uwsgi server is enabled, and the whole response does not fit into the buffers set by the and directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the directive.",
+      "description": "When buffering of responses from the uwsgi server is enabled, and the whole response does not fit into the buffers set by the `uwsgi_buffer_size` and `uwsgi_buffers` directives, a part of the response can be saved to a temporary file. This directive sets the maximum size of the temporary file. The size of data written to the temporary file at a time is set by the `uwsgi_temp_file_write_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_max_temp_file_size"
     },
     {
@@ -19034,7 +19733,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: uwsgi_no_cache $cookie_nocache $arg_nocache$arg_comment; uwsgi_no_cache $http_pragma $http_authorization; Can be used along with the directive.",
+      "description": "Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be saved: uwsgi_no_cache $cookie_nocache $arg_nocache$arg_comment; uwsgi_no_cache $http_pragma $http_authorization; Can be used along with the `uwsgi_cache_bypass` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_no_cache"
     },
     {
@@ -19117,7 +19816,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the original request body is passed to the uwsgi server. See also the directive.",
+      "description": "Indicates whether the original request body is passed to the uwsgi server. See also the `uwsgi_pass_request_headers` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_pass_request_body"
     },
     {
@@ -19138,7 +19837,7 @@
         "location"
       ],
       "default": "on",
-      "description": "Indicates whether the header fields of the original request are passed to the uwsgi server. See also the directive.",
+      "description": "Indicates whether the header fields of the original request are passed to the uwsgi server. See also the `uwsgi_pass_request_body` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_pass_request_headers"
     },
     {
@@ -19626,7 +20325,7 @@
         "location"
       ],
       "default": "off",
-      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives or . The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: uwsgi_store /data/www$original_uri;",
+      "description": "Enables saving of files to a disk. The `on` parameter saves files with paths corresponding to the directives `alias` or `root`. The `off` parameter disables saving of files. In addition, the file name can be set explicitly using the string with variables: uwsgi_store /data/www$original_uri;",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_store"
     },
     {
@@ -19668,7 +20367,7 @@
         "location"
       ],
       "default": "8k|16k",
-      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the uwsgi server to temporary files is enabled. By default, size is limited by two buffers set by the and directives. The maximum size of a temporary file is set by the directive.",
+      "description": "Limits the size of data written to a temporary file at a time, when buffering of responses from the uwsgi server to temporary files is enabled. By default, size is limited by two buffers set by the `uwsgi_buffer_size` and `uwsgi_buffers` directives. The maximum size of a temporary file is set by the `uwsgi_max_temp_file_size` directive.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_temp_file_write_size"
     },
     {
@@ -19804,7 +20503,7 @@
         "events"
       ],
       "default": "32",
-      "description": "When using with the connection processing method, sets the maximum number of outstanding asynchronous I/O operations for a single worker process.",
+      "description": "When using `aio` with the `epoll` connection processing method, sets the maximum number of outstanding asynchronous I/O operations for a single worker process.",
       "docUrl": "https://nginx.org/en/docs/ngx_core_module.html#worker_aio_requests"
     },
     {
@@ -20065,7 +20764,7 @@
         "location"
       ],
       "default": null,
-      "description": "Defines the parameters for XSLT stylesheets. The value is treated as an XPath expression. The value can contain variables. To pass a string value to a stylesheet, the directive can be used.",
+      "description": "Defines the parameters for XSLT stylesheets. The value is treated as an XPath expression. The value can contain variables. To pass a string value to a stylesheet, the `xslt_string_param` directive can be used.",
       "docUrl": "https://nginx.org/en/docs/http/ngx_http_xslt_module.html#xslt_param"
     },
     {
@@ -20183,7 +20882,7 @@
         "server"
       ],
       "default": null,
-      "description": "Enables the synchronization of shared memory zones between cluster nodes. Cluster nodes are defined using directives.",
+      "description": "Enables the synchronization of shared memory zones between cluster nodes. Cluster nodes are defined using `zone_sync_server` directives.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_zone_sync_module.html#zone_sync"
     },
     {
@@ -20283,7 +20982,7 @@
         "server"
       ],
       "default": "4k|8k",
-      "description": "Sets size of a per-connection receive buffer used to parse incoming stream of synchronization messages. The buffer size must be equal or greater than one of the . By default, the buffer size is equal to zone_sync_buffers size multiplied by number.",
+      "description": "Sets size of a per-connection receive buffer used to parse incoming stream of synchronization messages. The buffer size must be equal or greater than one of the `zone_sync_buffers`. By default, the buffer size is equal to zone_sync_buffers size multiplied by number.",
       "docUrl": "https://nginx.org/en/docs/stream/ngx_stream_zone_sync_module.html#zone_sync_recv_buffer_size"
     },
     {
@@ -20592,21 +21291,21 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_acme_module",
-      "description": "SSL certificate that can be passed to the"
+      "description": "SSL certificate that can be passed to the `ssl_certificate`"
     },
     {
       "name": "$acme_certificate_key",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_acme_module",
-      "description": "SSL certificate private key that can be passed to"
+      "description": "SSL certificate private key that can be passed to `ssl_certificate_key`"
     },
     {
       "name": "$ancient_browser",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_browser_module",
-      "description": "equals the value set by the directive, if a browser was identified as ancient;"
+      "description": "equals the value set by the `ancient_browser_value` directive, if a browser was identified as ancient;"
     },
     {
       "name": "$arg_name",
@@ -20781,7 +21480,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "or directive’s value for the current request"
+      "description": "`root` or `alias` directive’s value for the current request"
     },
     {
       "name": "$document_uri",
@@ -20795,14 +21494,14 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_fastcgi_module",
-      "description": "the value of the second capture set by the directive. This variable can be used to set the `PATH_INFO` parameter."
+      "description": "the value of the second capture set by the `fastcgi_split_path_info` directive. This variable can be used to set the `PATH_INFO` parameter."
     },
     {
       "name": "$fastcgi_script_name",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_fastcgi_module",
-      "description": "request URI or, if a URI ends with a slash, request URI with an index file name configured by the directive appended to it. This variable can be used to set the `SCRIPT_FILENAME` and `PATH_TRANSLATED` parameters that determine the script name in PHP. For example, for the “`/info/`” request with the following directives fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME /home/www/scripts/php$fastcgi_script_name; the `SCRIPT_FILENAME` parameter will be equal to “`/home/www/scripts/php/info/index.php`”. When using the directive, the $fastcgi_script_name variable equals the value of the first capture set by the directive."
+      "description": "request URI or, if a URI ends with a slash, request URI with an index file name configured by the `fastcgi_index` directive appended to it. This variable can be used to set the `SCRIPT_FILENAME` and `PATH_TRANSLATED` parameters that determine the script name in PHP. For example, for the “`/info/`” request with the following directives fastcgi_index index.php; fastcgi_param SCRIPT_FILENAME /home/www/scripts/php$fastcgi_script_name; the `SCRIPT_FILENAME` parameter will be equal to “`/home/www/scripts/php/info/index.php`”. When using the `fastcgi_split_path_info` directive, the $fastcgi_script_name variable equals the value of the first capture set by the directive."
     },
     {
       "name": "$geoip_area_code",
@@ -20935,14 +21634,14 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_geoip_module",
-      "description": "DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API."
+      "description": "DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. This variable may contain outdated information since the corresponding database field is deprecated."
     },
     {
       "name": "$geoip_dma_code",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_geoip_module",
-      "description": "DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API."
+      "description": "DMA region code in US (also known as “metro code”), according to the geotargeting in Google AdWords API. This variable may contain outdated information since the corresponding database field is deprecated."
     },
     {
       "name": "$geoip_latitude",
@@ -21005,14 +21704,14 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_geoip_module",
-      "description": "two-symbol country region code (region, territory, state, province, federal land and the like), for example, “`48`”, “`DC`”."
+      "description": "country region code (region, territory, state, province, federal land and the like)."
     },
     {
       "name": "$geoip_region",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_geoip_module",
-      "description": "two-symbol country region code (region, territory, state, province, federal land and the like), for example, “`48`”, “`DC`”."
+      "description": "country region code (region, territory, state, province, federal land and the like)."
     },
     {
       "name": "$geoip_region_name",
@@ -21110,7 +21809,7 @@
       "prefix": "$jwt_claim_",
       "family": "http",
       "module": "Module ngx_http_auth_jwt_module",
-      "description": "returns the value of a specified JWT claim For nested claims and claims including a dot (“.”), the value of the variable cannot be evaluated; the directive should be used instead. Variable values for tokens encrypted with JWE are available only after decryption which occurs during the Access phase."
+      "description": "returns the value of a specified JWT claim For nested claims and claims including a dot (“.”), the value of the variable cannot be evaluated; the `auth_jwt_claim_set` directive should be used instead. Variable values for tokens encrypted with JWE are available only after decryption which occurs during the Access phase."
     },
     {
       "name": "$jwt_header_name",
@@ -21145,7 +21844,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "setting this variable enables response rate limiting; see"
+      "description": "setting this variable enables response rate limiting; see `limit_rate`"
     },
     {
       "name": "$limit_req_status",
@@ -21166,7 +21865,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_browser_module",
-      "description": "equals the value set by the directive, if a browser was identified as modern;"
+      "description": "equals the value set by the `modern_browser_value` directive, if a browser was identified as modern;"
     },
     {
       "name": "$mqtt_preread_clientid",
@@ -21327,70 +22026,70 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_proxy_module",
-      "description": "name and port of a proxied server as specified in the directive;"
+      "description": "name and port of a proxied server as specified in the `proxy_pass` directive;"
     },
     {
       "name": "$proxy_port",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_proxy_module",
-      "description": "port of a proxied server as specified in the directive, or the protocol’s default port;"
+      "description": "port of a proxied server as specified in the `proxy_pass` directive, or the protocol’s default port;"
     },
     {
       "name": "$proxy_protocol_addr",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "client address from the PROXY protocol header (1.5.12) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "client address from the PROXY protocol header (1.5.12) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_addr",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "client address from the PROXY protocol header (1.11.4) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "client address from the PROXY protocol header (1.11.4) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_port",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "client port from the PROXY protocol header (1.11.0) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "client port from the PROXY protocol header (1.11.0) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_port",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "client port from the PROXY protocol header (1.11.4) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "client port from the PROXY protocol header (1.11.4) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_server_addr",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "server address from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "server address from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_server_addr",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "server address from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "server address from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_server_port",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "server port from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "server port from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_server_port",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "server port from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "server port from the PROXY protocol header (1.17.6) The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_tlv_aws_vpce_id",
@@ -21439,14 +22138,14 @@
       "prefix": "$proxy_protocol_tlv_",
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "TLV from the PROXY Protocol header (1.23.2). The `name` can be a TLV type name or its numeric value. In the latter case, the value is hexadecimal and should be prefixed with `0x`: $proxy_protocol_tlv_alpn $proxy_protocol_tlv_0x01 SSL TLVs can also be accessed by TLV type name or its numeric value, both prefixed by `ssl_`: $proxy_protocol_tlv_ssl_version $proxy_protocol_tlv_ssl_0x21 The following TLV type names are supported: `alpn` (`0x01`)— upper layer protocol used over the connection `authority` (`0x02`)— host name value passed by the client `unique_id` (`0x05`)— unique connection id `netns` (`0x30`)— name of the namespace `ssl` (`0x20`)— binary SSL TLV structure The following SSL TLV type names are supported: `ssl_version` (`0x21`)— SSL version used in client connection `ssl_cn` (`0x22`)— SSL certificate Common Name `ssl_cipher` (`0x23`)— name of the used cipher `ssl_sig_alg` (`0x24`)— algorithm used to sign the certificate `ssl_key_alg` (`0x25`)— public-key algorithm Also, the following special SSL TLV type name is supported: `ssl_verify`— client SSL certificate verification result, `0` if the client presented a certificate and it was successfully verified, non-zero otherwise. The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "TLV from the PROXY Protocol header (1.23.2). The `name` can be a TLV type name or its numeric value. In the latter case, the value is hexadecimal and should be prefixed with `0x`: $proxy_protocol_tlv_alpn $proxy_protocol_tlv_0x01 SSL TLVs can also be accessed by TLV type name or its numeric value, both prefixed by `ssl_`: $proxy_protocol_tlv_ssl_version $proxy_protocol_tlv_ssl_0x21 The following TLV type names are supported: `alpn` (`0x01`)— upper layer protocol used over the connection `authority` (`0x02`)— host name value passed by the client `unique_id` (`0x05`)— unique connection id `netns` (`0x30`)— name of the namespace `ssl` (`0x20`)— binary SSL TLV structure The following SSL TLV type names are supported: `ssl_version` (`0x21`)— SSL version used in client connection `ssl_cn` (`0x22`)— SSL certificate Common Name `ssl_cipher` (`0x23`)— name of the used cipher `ssl_sig_alg` (`0x24`)— algorithm used to sign the certificate `ssl_key_alg` (`0x25`)— public-key algorithm Also, the following special SSL TLV type name is supported: `ssl_verify`— client SSL certificate verification result, `0` if the client presented a certificate and it was successfully verified, non-zero otherwise. The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$proxy_protocol_tlv_name",
       "prefix": "$proxy_protocol_tlv_",
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "TLV from the PROXY Protocol header (1.23.2). The `name` can be a TLV type name or its numeric value. In the latter case, the value is hexadecimal and should be prefixed with `0x`: $proxy_protocol_tlv_alpn $proxy_protocol_tlv_0x01 SSL TLVs can also be accessed by TLV type name or its numeric value, both prefixed by `ssl_`: $proxy_protocol_tlv_ssl_version $proxy_protocol_tlv_ssl_0x21 The following TLV type names are supported: `alpn` (`0x01`)— upper layer protocol used over the connection `authority` (`0x02`)— host name value passed by the client `unique_id` (`0x05`)— unique connection id `netns` (`0x30`)— name of the namespace `ssl` (`0x20`)— binary SSL TLV structure The following SSL TLV type names are supported: `ssl_version` (`0x21`)— SSL version used in client connection `ssl_cn` (`0x22`)— SSL certificate Common Name `ssl_cipher` (`0x23`)— name of the used cipher `ssl_sig_alg` (`0x24`)— algorithm used to sign the certificate `ssl_key_alg` (`0x25`)— public-key algorithm Also, the following special SSL TLV type name is supported: `ssl_verify`— client SSL certificate verification result, zero if the client presented a certificate and it was successfully verified, and non-zero otherwise The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the directive."
+      "description": "TLV from the PROXY Protocol header (1.23.2). The `name` can be a TLV type name or its numeric value. In the latter case, the value is hexadecimal and should be prefixed with `0x`: $proxy_protocol_tlv_alpn $proxy_protocol_tlv_0x01 SSL TLVs can also be accessed by TLV type name or its numeric value, both prefixed by `ssl_`: $proxy_protocol_tlv_ssl_version $proxy_protocol_tlv_ssl_0x21 The following TLV type names are supported: `alpn` (`0x01`)— upper layer protocol used over the connection `authority` (`0x02`)— host name value passed by the client `unique_id` (`0x05`)— unique connection id `netns` (`0x30`)— name of the namespace `ssl` (`0x20`)— binary SSL TLV structure The following SSL TLV type names are supported: `ssl_version` (`0x21`)— SSL version used in client connection `ssl_cn` (`0x22`)— SSL certificate Common Name `ssl_cipher` (`0x23`)— name of the used cipher `ssl_sig_alg` (`0x24`)— algorithm used to sign the certificate `ssl_key_alg` (`0x25`)— public-key algorithm Also, the following special SSL TLV type name is supported: `ssl_verify`— client SSL certificate verification result, zero if the client presented a certificate and it was successfully verified, and non-zero otherwise The PROXY protocol must be previously enabled by setting the `proxy_protocol` parameter in the `listen` directive."
     },
     {
       "name": "$query_string",
@@ -21488,7 +22187,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "an absolute pathname corresponding to the or directive’s value for the current request, with all symbolic links resolved to real paths"
+      "description": "an absolute pathname corresponding to the `root` or `alias` directive’s value for the current request, with all symbolic links resolved to real paths"
     },
     {
       "name": "$remote_addr",
@@ -21537,14 +22236,14 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "request body The variable’s value is made available in locations processed by the , , , and directives when the request body was read to a memory buffer."
+      "description": "request body The variable’s value is made available in locations processed by the `proxy_pass`, `fastcgi_pass`, `uwsgi_pass`, and `scgi_pass` directives when the request body was read to a memory buffer."
     },
     {
       "name": "$request_body_file",
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "name of a temporary file with the request body At the end of processing, the file needs to be removed. To always write the request body to a file, needs to be enabled. When the name of a temporary file is passed in a proxied request or in a request to a FastCGI/uwsgi/SCGI server, passing the request body should be disabled by the proxy_pass_request_body off, fastcgi_pass_request_body off, uwsgi_pass_request_body off, or scgi_pass_request_body off directives, respectively."
+      "description": "name of a temporary file with the request body At the end of processing, the file needs to be removed. To always write the request body to a file, `client_body_in_file_only` needs to be enabled. When the name of a temporary file is passed in a proxied request or in a request to a FastCGI/uwsgi/SCGI server, passing the request body should be disabled by the proxy_pass_request_body off, fastcgi_pass_request_body off, uwsgi_pass_request_body off, or scgi_pass_request_body off directives, respectively."
     },
     {
       "name": "$request_completion",
@@ -21558,7 +22257,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "file path for the current request, based on the or directives, and the request URI"
+      "description": "file path for the current request, based on the `root` or `alias` directives, and the request URI"
     },
     {
       "name": "$request_id",
@@ -21635,7 +22334,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_secure_link_module",
-      "description": "The lifetime of a link passed in a request; intended to be used only in the directive."
+      "description": "The lifetime of a link passed in a request; intended to be used only in the `secure_link_md5` directive."
     },
     {
       "name": "$sent_http_name",
@@ -21656,14 +22355,14 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_core_module",
-      "description": "an address of the server which accepted a request Computing a value of this variable usually requires one system call. To avoid a system call, the directives must specify addresses and use the `bind` parameter."
+      "description": "an address of the server which accepted a request Computing a value of this variable usually requires one system call. To avoid a system call, the `listen` directives must specify addresses and use the `bind` parameter."
     },
     {
       "name": "$server_addr",
       "prefix": null,
       "family": "stream",
       "module": "Module ngx_stream_core_module",
-      "description": "an address of the server which accepted a connection Computing a value of this variable usually requires one system call. To avoid a system call, the directives must specify addresses and use the `bind` parameter."
+      "description": "an address of the server which accepted a connection Computing a value of this variable usually requires one system call. To avoid a system call, the `listen` directives must specify addresses and use the `bind` parameter."
     },
     {
       "name": "$server_name",
@@ -21768,7 +22467,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_ssl_module",
-      "description": "returns the client certificate in the PEM format for an established SSL connection, with each line except the first prepended with the tab character; this is intended for the use in the directive; The variable is deprecated, the $ssl_client_escaped_cert variable should be used instead."
+      "description": "returns the client certificate in the PEM format for an established SSL connection, with each line except the first prepended with the tab character; this is intended for the use in the `proxy_set_header` directive; The variable is deprecated, the $ssl_client_escaped_cert variable should be used instead."
     },
     {
       "name": "$ssl_client_cert",
@@ -22202,7 +22901,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_userid_module",
-      "description": "If the variable is set to a non-empty string that is not “`0`”, the client identifiers are reset. The special value “`log`” additionally leads to the output of messages about the reset identifiers to the ."
+      "description": "If the variable is set to a non-empty string that is not “`0`”, the client identifiers are reset. The special value “`log`” additionally leads to the output of messages about the reset identifiers to the `error_log`."
     },
     {
       "name": "$uid_set",
@@ -22216,7 +22915,7 @@
       "prefix": null,
       "family": "http",
       "module": "Module ngx_http_upstream_module",
-      "description": "keeps the IP address and port, or the path to the UNIX-domain socket of the upstream server. If several servers were contacted during request processing, their addresses are separated by commas, e.g. “`192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock`”. If an internal redirect from one server group to another happens, initiated by X-Accel-Redirect or , then the server addresses from different groups are separated by colons, e.g. “`192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock : 192.168.10.1:80, 192.168.10.2:80`”. If a server cannot be selected, the variable keeps the name of the server group."
+      "description": "keeps the IP address and port, or the path to the UNIX-domain socket of the upstream server. If several servers were contacted during request processing, their addresses are separated by commas, e.g. “`192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock`”. If an internal redirect from one server group to another happens, initiated by X-Accel-Redirect or `error_page`, then the server addresses from different groups are separated by colons, e.g. “`192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock : 192.168.10.1:80, 192.168.10.2:80`”. If a server cannot be selected, the variable keeps the name of the server group."
     },
     {
       "name": "$upstream_addr",

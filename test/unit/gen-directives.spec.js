@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { makeFixtureDocs } = require('./fixture-docs');
-const { generate } = require('../../scripts/gen-directives');
+const { generate, stripTags } = require('../../scripts/gen-directives');
 
 const { result, warnings } = generate(makeFixtureDocs());
 const find = (name, family) => result.directives.find((d) => d.name === name && d.family === family);
@@ -54,4 +54,10 @@ test('내장 변수 추출 + 접두어 패턴 변수', () => {
   assert.ok(host && host.prefix === null);
   const arg = result.variables.find((v) => v.name === '$arg_name');
   assert.equal(arg.prefix, '$arg_');
+});
+
+test('자기닫힘 <link/> 는 문서/지시어 이름으로 대체 (빈 따옴표 방지)', () => {
+  assert.equal(stripTags('in the “<link doc="../server_names.xml"/>” document'), 'in the “server_names” document');
+  assert.equal(stripTags('see <link id="listen"/>.', { backticks: true }), 'see `listen`.');
+  assert.equal(stripTags('a <link id="x">text</link> b'), 'a text b'); // 내용 있는 링크는 그대로
 });
