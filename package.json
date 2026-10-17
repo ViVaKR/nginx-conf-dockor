@@ -3,7 +3,7 @@
   "publisher": "buddham-hq",
   "displayName": "Hun Nginx 설정 닥터",
   "description": "훈(Hun) 프로젝트 - nginx 설정의 컨텍스트를 읽는 구문 강조, 진단, 자동완성, hover 문서 | Context-aware diagnostics, IntelliSense and hover docs for nginx configuration files.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "author": {
     "name": "Kim Bum Jun (ViVaKR)",
