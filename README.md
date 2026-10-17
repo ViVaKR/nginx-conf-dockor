@@ -93,6 +93,20 @@ nginx 설정 파일(`nginx.conf`, `conf.d/*.conf` 등)을 편집할 때 **구문
 
 그 밖의 파일은 우측 하단 언어 모드에서 `Nginx`를 직접 선택하면 됩니다.
 
+### 사용자 지정 파일 연결 (settings.json)
+
+특정 확장자나 사용자 정의 파일을 항상 nginx 언어로 연결하려면 VS Code 설정(settings.json)에 아래 내용을 추가하세요.
+
+```json
+"files.associations": {
+  "*.zone": "nginx",
+  "*.conf": "nginx",
+  "*.conf.d": "nginx"
+}
+```
+
+---
+
 ## ⚙️ 설정
 
 | 설정 | 기본값 | 설명 |
@@ -100,6 +114,23 @@ nginx 설정 파일(`nginx.conf`, `conf.d/*.conf` 등)을 편집할 때 **구문
 | `nginx-conf-doctor.extraDirectives` | `[]` | 서드파티 모듈 등 이 확장이 모르는 지시어 이름. 여기에 적으면 "알 수 없는 지시어" 경고가 사라집니다. |
 | `nginx-conf-doctor.contextSeverity` | `warning` | "이 위치에서는 쓸 수 없는 지시어" 경고의 표시 수준 (`error` / `warning` / `information` / `off`) |
 | `nginx-conf-doctor.unknownDirectiveSeverity` | `warning` | 알 수 없는 지시어의 표시 수준 (`error` / `warning` / `information` / `off`) |
+
+---
+
+### 권장 VS Code 설정 (settings.json)
+
+
+
+```json
+"[nginx]": {
+  "editor.suggest.insertMode": "insert",
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.autoIndent": "full",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "buddham-hq.nginx-conf-doctor"
+}
+```
 
 ### 예: 서드파티 모듈 지시어 허용
 
@@ -142,6 +173,18 @@ npx vsce package
 ```
 
 ## 📝 릴리스 노트
+
+### 0.0.5
+
+- Nginx 전용 포맷터(Document Formatting Provider) 탑재 및 들여쓰기 규칙 개선
+
+- README.md 내 포맷터 권장 설정([nginx]) 및 파일 연관(files.associations) 안내 추가
+
+### 0.0.3
+
+- 마우스 호버 도움말 안내문 버그 수정
+
+배포 키워드 목록 보강
 
 ### 0.0.2
 
